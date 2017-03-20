@@ -28,3 +28,6 @@
 *.app
 
 *.bat
+
+build/
+*.vcxproj*
