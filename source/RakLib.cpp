@@ -48,13 +48,13 @@ namespace RakLib {
 				identifierStream << sessionManager->getActivePlayers() << ";";
 				identifierStream << sessionManager->getMaxPlayer();
 
-				auto pong = std::make_unique<UnConnectedPong>(this->sessionManager->getIdentifier(), ping.pingID, identifierStream.str());
-				pong->encode();
+				UnConnectedPong pong(this->sessionManager->getIdentifier(), ping.pingID, identifierStream.str());
+				pong.encode();
 
-				pong->ip = ping.ip;
-				pong->port = ping.port;
+				pong.ip = ping.ip;
+				pong.port = ping.port;
 
-				this->socket->send(std::move(pong));
+				this->socket->send(pong);
 			}
 			break;
 
@@ -63,13 +63,13 @@ namespace RakLib {
 				Request1 request(std::move(pck));
 				request.decode();
 
-				auto reply = std::make_unique<Reply1>(this->sessionManager->useSecurity(), this->sessionManager->getIdentifier(), request.mtuSize);
-				reply->encode();
+				Reply1 reply(this->sessionManager->useSecurity(), this->sessionManager->getIdentifier(), request.mtuSize);
+				reply.encode();
 
-				reply->ip = request.ip;
-				reply->port = request.port;
+				reply.ip = request.ip;
+				reply.port = request.port;
 
-				this->socket->send(std::move(reply));
+				this->socket->send(reply);
 			}
 			break;
 
@@ -78,14 +78,14 @@ namespace RakLib {
 				Request2 request(std::move(pck));
 				request.decode();
 
-				auto reply = std::make_unique<Reply2>(this->sessionManager->getIdentifier(), request.port, request.mtuSize, request.security);
-				reply->encode();
+				Reply2 reply (this->sessionManager->getIdentifier(), request.port, request.mtuSize, request.security);
+				reply.encode();
 
-				reply->ip = request.ip;
-				reply->port = request.port;
+				reply.ip = request.ip;
+				reply.port = request.port;
 
-				this->socket->send(std::move(reply));
-				this->sessionManager->addSession(pck->ip, pck->port, request.clientID, reply->mtuSize);
+				this->socket->send(reply);
+				this->sessionManager->addSession(pck->ip, pck->port, request.clientID, reply.mtuSize);
 			}
 			break;
 
@@ -104,8 +104,8 @@ namespace RakLib {
 		}
 	}
 
-	void RakLib::sendPacket(std::unique_ptr<Packet> packet) {
-		this->socket->send(std::move(packet));
+	void RakLib::sendPacket(const Packet& packet) {
+		this->socket->send(packet);
 	}
 
 	void RakLib::stop() {

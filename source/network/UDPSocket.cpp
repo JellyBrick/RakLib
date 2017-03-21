@@ -58,7 +58,6 @@ namespace RakLib {
 			std::cout << " Error Code: " << WSAGetLastError() << std::endl;
 			WSACleanup();
 #endif
-			this->close();
 			return nullptr;
 		}
 
@@ -68,20 +67,19 @@ namespace RakLib {
 		return std::make_unique<Packet>(buffer, size, ip, recv.sin_port);
 	}
 
-	int UDPSocket::send(std::unique_ptr<Packet> pck) {
+	int UDPSocket::send(const Packet& packet) {
 		sockaddr_in sendaddr;
 		sendaddr.sin_family = AF_INET;
-		sendaddr.sin_port = pck->port;
-		inet_pton(AF_INET, pck->ip.c_str(), &sendaddr.sin_addr);
+		sendaddr.sin_port = packet.port;
+		inet_pton(AF_INET, packet.ip.c_str(), &sendaddr.sin_addr);
 
-		int size = sendto(this->sock, (char*)pck->getBuffer(), pck->getLength(), 0, (sockaddr*)&sendaddr, sizeof(sockaddr_in));
+		int size = sendto(this->sock, (char*)packet.getBuffer(), packet.getLength(), 0, (sockaddr*)&sendaddr, sizeof(sockaddr_in));
 		if (size == -1) {
 			std::cout << "Could not send the packet!";
 #ifdef WIN32 
 			std::cout << " Error Code: " << WSAGetLastError() << std::endl;
 			WSACleanup();
 #endif 
-			this->close();
 			return size;
 		}
 

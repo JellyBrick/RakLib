@@ -39,7 +39,7 @@ namespace RakLib {
 		bool bind(const std::string& ip, uint16 port);
 
 		std::unique_ptr<Packet> receive();
-		int send(std::unique_ptr<Packet> packet);
+		int send(const Packet& packet);
 
 		void close();
 	};

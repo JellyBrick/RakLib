@@ -17,25 +17,25 @@ namespace RakLib {
 			this->updateQueue->sequenceNumber = this->sequenceNum++;
 			this->updateQueue->encode();
 
-			this->sendPacket(std::move(this->updateQueue));
+			this->sendPacket(*this->updateQueue.get());
 			this->recoveryQueue[this->updateQueue->sequenceNumber] = std::move(this->updateQueue);
 
 			this->updateQueue = std::make_unique<CustomPacket>(nullptr, 0);
 		}
 
 		if (!this->ACKQueue.empty()) {
-			auto ack = std::make_unique<Acknowledge>(0xC0, this->ACKQueue);
-			ack->encode();
+			Acknowledge ack(0xC0, this->ACKQueue);
+			ack.encode();
 
-			this->sendPacket(std::move(ack));
+			this->sendPacket(ack);
 			this->ACKQueue.clear();
 		}
 
 		if (!this->NACKQueue.empty()) {
-			auto nack = std::make_unique<Acknowledge>(0xA0, this->NACKQueue);
-			nack->encode();
+			Acknowledge nack(0xA0, this->NACKQueue);
+			nack.encode();
 
-			this->sendPacket(std::move(nack));
+			this->sendPacket(nack);
 		}
 	}
 
@@ -53,12 +53,12 @@ namespace RakLib {
 			}
 
 		} else if (packetID == 0xA0) { // NACK
-			auto nack = std::make_unique<Acknowledge>(std::move(packet));
-			nack->decode();
+			Acknowledge nack(std::move(packet));
+			nack.decode();
 
-			for (uint32 i : nack->sequenceNumbers) {
+			for (uint32 i : nack.sequenceNumbers) {
 				if (this->recoveryQueue[i] != nullptr) {
-					this->sendPacket(std::move(this->recoveryQueue[i]));
+					this->sendPacket(*this->recoveryQueue[i].get());
 				}
 			}
 		} else if (packetID >= 0x80 && packetID <= 0x8F) {  // Custom Packets Range
@@ -113,7 +113,7 @@ namespace RakLib {
 			customPacket->packets.push_back(internalPacket); 
 			customPacket->encode();
 
-			this->sendPacket(std::make_unique<CustomPacket>(customPacket->getBuffer(), customPacket->getLength()));
+			this->sendPacket(*customPacket.get());
 			this->recoveryQueue[customPacket->sequenceNumber] = std::move(customPacket); // When we receive a notification that this packet have been received, the packet will be destroyed.
 		} else if (priority == QueuePriority::UPDATE) {
 			this->updateQueue->packets.push_back(internalPacket);
@@ -124,7 +124,7 @@ namespace RakLib {
 				this->normalQueue->sequenceNumber = this->sequenceNum++;
 				this->normalQueue->encode();
 
-				this->sendPacket(std::make_unique<CustomPacket>(this->normalQueue->getBuffer(), this->normalQueue->getLength()));
+				this->sendPacket(*normalQueue.get());
 				this->recoveryQueue[this->normalQueue->sequenceNumber] = std::move(this->normalQueue); // When we receive a notification that this packet have been received, the packet will be destroyed.
 
 				this->normalQueue = std::make_unique<CustomPacket>(nullptr, 0);

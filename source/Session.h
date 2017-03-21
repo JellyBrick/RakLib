@@ -49,7 +49,7 @@ namespace RakLib {
 		virtual void handleDataPacket(std::unique_ptr<DataPacket> packet) = 0;
 
 		virtual void addToQueue(std::unique_ptr<DataPacket> packet, QueuePriority priority);
-		virtual void sendPacket(std::unique_ptr<Packet> packet) = 0; // TODO: Find an better way to find CustomDataPacket. We are copying the buffer everytime we send an packet because of the ACK
+		virtual void sendPacket(const Packet& packet) = 0;
 
 		const std::string& getIP() const { return ip; };
 		uint16 getPort() const { return port; };
