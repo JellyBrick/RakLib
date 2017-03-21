@@ -8,7 +8,7 @@ namespace RakLib {
 		this->sequenceNumbers = sequenzeNum;
 	}
 
-	Acknowledge::Acknowledge(Packet* pck) : Packet(pck), pid(0) {}
+	Acknowledge::Acknowledge(std::unique_ptr<Packet> pck) : Packet(std::move(pck)), pid(0) {}
 
 	void Acknowledge::encode() {
 		this->position = 3;

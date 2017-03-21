@@ -6,10 +6,10 @@ namespace RakLib {
 	class Request1 : public LoginPacket {
 	public:
 		uint8 version;
-		short mtuSize;
+		int16 mtuSize;
 
 	public:
-		Request1(Packet* packet);
+		Request1(std::unique_ptr<Packet> packet);
 
 		void decode();
 	};

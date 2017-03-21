@@ -8,11 +8,19 @@ namespace RakLib {
 	class Session;
 	class SessionManager {
 	public:
-
+		/*
+		 * TODO: Description
+		 */
 		virtual void addSession(const std::string& ip, uint16 port, int64 clientID, int16 mtu) = 0;
 
-		virtual bool removeSession(const std::string& ip, unsigned short port) = 0;
+		/*
+		 * TODO: Description
+		 */
+		virtual void removeSession(const std::string& ip, unsigned short port) = 0;
 
+		/*
+		 * TODO: Description
+		 */
 		virtual Session* getSession(const std::string& ip, unsigned short port) = 0;
 
 		/*
@@ -29,12 +37,12 @@ namespace RakLib {
 		 *	Server type
 		 *	Expected: MCPE
 		 */
-		virtual const std::string getType() = 0;
+		virtual std::string getType() = 0;
 
 		/* 
 		 * Server Name
 		 */
-		virtual const std::string getName() = 0;
+		virtual std::string getName() = 0;
 
 		/*
 		 * Server Protocol
@@ -44,7 +52,7 @@ namespace RakLib {
 		/*
 		 * Server Game Version Supported
 		 */
-		virtual const std::string getGameVersion() = 0;
+		virtual std::string getGameVersion() = 0;
 
 		/*
 		 * Server Current number of player

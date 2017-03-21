@@ -26,9 +26,7 @@ namespace RakLib {
 		inline uint16 getPort() const { return this->port; };
 		inline bool isRunning() const { return this->running; };
 
-		void sendPacket(Packet* packet);
-
-		std::string getSessionIdentifier(const std::string& ip, uint16 port);
+		void sendPacket(std::unique_ptr<Packet> packet);
 
 		void start();
 		void run();

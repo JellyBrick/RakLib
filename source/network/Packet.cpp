@@ -36,7 +36,8 @@ namespace RakLib {
 		this->length = size;
 	}
 
-	Packet::Packet(Packet* other) {
+	// Should I take ownership?
+	Packet::Packet(std::unique_ptr<Packet> other) {
 		this->buffer = new uint8[other->getLength()];
 		memcpy(this->buffer, other->getBuffer(), other->getLength());
 

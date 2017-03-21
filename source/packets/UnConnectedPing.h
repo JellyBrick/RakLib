@@ -8,7 +8,7 @@ namespace RakLib {
 		int64 pingID;
 
 	public:
-		UnConnectedPing(Packet* pck);
+		UnConnectedPing(std::unique_ptr<Packet> pck);
 
 		void decode() override;
 	};

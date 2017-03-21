@@ -68,7 +68,7 @@ namespace RakLib {
 		return std::make_unique<Packet>(buffer, size, ip, recv.sin_port);
 	}
 
-	int UDPSocket::send(Packet* pck) {
+	int UDPSocket::send(std::unique_ptr<Packet> pck) {
 		sockaddr_in sendaddr;
 		sendaddr.sin_family = AF_INET;
 		sendaddr.sin_port = pck->port;

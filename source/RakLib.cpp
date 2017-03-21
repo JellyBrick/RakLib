@@ -20,12 +20,6 @@ namespace RakLib {
 		this->sessionManager = sessionManager;
 	}
 
-	// I think we can replace this with an hash of the ip (maybe + port)
-	std::string RakLib::getSessionIdentifier(const std::string& ip, uint16 port) {
-		std::string retval = ip;
-		return retval.append(":" + port);
-	}
-
 	void RakLib::start() {
 		assert(!this->running);
 
@@ -43,7 +37,7 @@ namespace RakLib {
 			case Packets::UNCONNECTED_PONG:
 			case Packets::UNCONNECTED_PONG_2:
 			{
-				UnConnectedPing ping(pck.get());
+				UnConnectedPing ping(std::move(pck));
 				ping.decode();
 
 				std::stringstream identifierStream; // "MCPE;Minecraft Server!;34;0.12.2;2;20"
@@ -54,44 +48,44 @@ namespace RakLib {
 				identifierStream << sessionManager->getActivePlayers() << ";";
 				identifierStream << sessionManager->getMaxPlayer();
 
-				UnConnectedPong pong(this->sessionManager->getIdentifier(), ping.pingID, identifierStream.str());
-				pong.encode();
+				auto pong = std::make_unique<UnConnectedPong>(this->sessionManager->getIdentifier(), ping.pingID, identifierStream.str());
+				pong->encode();
 
-				pong.ip = pck->ip;
-				pong.port = pck->port;
+				pong->ip = ping.ip;
+				pong->port = ping.port;
 
-				this->socket->send(&pong);
+				this->socket->send(std::move(pong));
 			}
 			break;
 
 			case Packets::CONNECTION_REQUEST_1:
 			{
-				Request1 request(pck.get());
+				Request1 request(std::move(pck));
 				request.decode();
 
-				Reply1 reply(this->sessionManager->useSecurity(), this->sessionManager->getIdentifier(), request.mtuSize);
-				reply.encode();
+				auto reply = std::make_unique<Reply1>(this->sessionManager->useSecurity(), this->sessionManager->getIdentifier(), request.mtuSize);
+				reply->encode();
 
-				reply.ip = pck->ip;
-				reply.port = pck->port;
+				reply->ip = request.ip;
+				reply->port = request.port;
 
-				this->socket->send(&reply);
+				this->socket->send(std::move(reply));
 			}
 			break;
 
 			case Packets::CONNECTION_REQUEST_2:
 			{
-				Request2 request(pck.get());
+				Request2 request(std::move(pck));
 				request.decode();
 
-				Reply2 reply(this->sessionManager->getIdentifier(), pck->port, request.mtuSize, request.security);
-				reply.encode();
+				auto reply = std::make_unique<Reply2>(this->sessionManager->getIdentifier(), request.port, request.mtuSize, request.security);
+				reply->encode();
 
-				reply.ip = pck->ip;
-				reply.port = pck->port;
+				reply->ip = request.ip;
+				reply->port = request.port;
 
-				this->socket->send(&reply);
-				this->sessionManager->addSession(pck->ip, pck->port, request.clientID, reply.mtuSize);
+				this->socket->send(std::move(reply));
+				this->sessionManager->addSession(pck->ip, pck->port, request.clientID, reply->mtuSize);
 			}
 			break;
 
@@ -110,8 +104,8 @@ namespace RakLib {
 		}
 	}
 
-	void RakLib::sendPacket(Packet* packet) {
-		this->socket->send(packet);
+	void RakLib::sendPacket(std::unique_ptr<Packet> packet) {
+		this->socket->send(std::move(packet));
 	}
 
 	void RakLib::stop() {

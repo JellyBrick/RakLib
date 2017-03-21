@@ -4,7 +4,7 @@
 namespace RakLib {
 	LoginPacket::LoginPacket() : Packet() {}
 
-	LoginPacket::LoginPacket(Packet* pck) : Packet(pck) {}
+	LoginPacket::LoginPacket(std::unique_ptr<Packet> pck) : Packet(std::move(pck)) {}
 
 	LoginPacket::LoginPacket(uint32 size) : Packet(size) {}
 

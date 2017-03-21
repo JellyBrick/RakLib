@@ -33,11 +33,11 @@ namespace RakLib {
 		uint16 mtuSize;
 
 	private:
-		CustomPacket* normalQueue;
-		CustomPacket* updateQueue;
+		std::unique_ptr<CustomPacket> normalQueue;
+		std::unique_ptr<CustomPacket> updateQueue;
 		std::vector<uint32> ACKQueue; // Received Packet Queue
 		std::vector<uint32> NACKQueue; // Not received packet queue
-		std::map<uint32, CustomPacket*> recoveryQueue; // Packet sent queue to be used if not received
+		std::map<uint32, std::unique_ptr<CustomPacket>> recoveryQueue; // Packet sent queue to be used if not received
 
 	public:
 		Session(std::string ip, uint16 port, int64 clientID, int16 mtu);
@@ -46,13 +46,12 @@ namespace RakLib {
 
 		virtual void receivePacket(std::unique_ptr<Packet> packet);
 
-		virtual void handleDataPacket(DataPacket* packet) = 0;
+		virtual void handleDataPacket(std::unique_ptr<DataPacket> packet) = 0;
 
-		virtual void addToQueue(DataPacket* packet, QueuePriority priority);
-		virtual void sendPacket(Packet* packet) = 0; 
+		virtual void addToQueue(std::unique_ptr<DataPacket> packet, QueuePriority priority);
+		virtual void sendPacket(std::unique_ptr<Packet> packet) = 0; // TODO: Find an better way to find CustomDataPacket. We are copying the buffer everytime we send an packet because of the ACK
 
-		inline const std::string& getIP() const { return ip; };
-		inline uint16 getPort() const { return port; };
-
+		const std::string& getIP() const { return ip; };
+		uint16 getPort() const { return port; };
 	};
 }

@@ -1,7 +1,7 @@
 #include "CustomPacket.h"
 
 namespace RakLib {
-	CustomPacket::CustomPacket(Packet* packet) : Packet(packet) {}
+	CustomPacket::CustomPacket(std::unique_ptr<Packet> packet) : Packet(std::move(packet)) {}
 
 	CustomPacket::CustomPacket(uint8* data, uint32 size) : Packet(data, size) {}
 
@@ -40,8 +40,8 @@ namespace RakLib {
 		this->putByte(this->packetID);
 		this->putLTriad((int24)this->sequenceNumber);
 		for (InternalPacket* pck : packets) {
-			Packet temp = pck->toBinary();
-			this->putByte(temp.getBuffer(), temp.getLength());
+			Packet* temp = pck->toBinary();
+			this->putByte(temp->getBuffer(), temp->getLength());
 		}
 	}
 }

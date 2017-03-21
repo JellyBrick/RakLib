@@ -12,7 +12,7 @@ namespace RakLib {
 
 	public:
 		Acknowledge(uint8 pid, std::vector<uint32> sequenzeNum);
-		Acknowledge(Packet* pck);
+		Acknowledge(std::unique_ptr<Packet> pck);
 
 		void decode();
 		void encode();

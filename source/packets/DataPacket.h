@@ -8,7 +8,7 @@ namespace RakLib {
 	public:
 		DataPacket(InternalPacket* pck) : Packet(pck->buff, pck->length) {}
 
-		DataPacket(Packet* packet) : Packet(packet) {}
+		DataPacket(std::unique_ptr<Packet> packet) : Packet(std::move(packet)) {}
 
 		DataPacket(uint32 size) : Packet(size) {}
 

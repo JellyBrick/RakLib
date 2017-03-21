@@ -3,6 +3,7 @@
 #include <string>
 
 #include "../Common.h"
+#include <memory>
 
 namespace RakLib {
 	class Packet {
@@ -23,7 +24,7 @@ namespace RakLib {
 		Packet(uint32 size);
 		Packet(uint8* buff, uint32 size);
 		Packet(uint8* buff, uint32 size, const std::string& ip, uint16 port);
-		Packet(Packet* other);
+		Packet(std::unique_ptr<Packet> other);
 		virtual ~Packet();
 
 		//Write Methods
