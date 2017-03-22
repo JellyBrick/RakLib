@@ -2,13 +2,14 @@
 
 #include <cassert>
 
+#include "Swap.h"
+
 namespace RakLib {
 	Packet::Packet() : port(0) {
 		this->buffer = new uint8[DEFAULT_BUFFER_SIZE];
 		this->position = 0;
 		this->length = DEFAULT_BUFFER_SIZE;
 	}
-
 
 	Packet::Packet(uint32 size) : port(0) {
 		this->buffer = new uint8[size];
@@ -70,19 +71,26 @@ namespace RakLib {
 		this->buffer[this->position++] = value ? 0x01 : 0x00;
 	}
 
-
 	void Packet::putShort(int16 v) {
 		assert(this->position + sizeof(int16) <= this->length);
-		this->buffer[this->position++] = (uint8)(v >> 8 & 0xFF);
-		this->buffer[this->position++] = (uint8)(v      & 0xFF);
+#if COMMON_LITTLE_ENDIAN
+		uint16 swapped = Common::swap16((uint16)v);
+		memcpy(this->buffer + this-> position, &swapped, sizeof(uint16));
+#else
+		memcpy(this->buffer + this->position, &v, sizeof(int16));
+#endif
+		this->position += sizeof(int16);
 	}
 
-	void Packet::putInt(int32 v) {
-		assert(this->position + sizeof(int32) <= this->length);
-		this->buffer[this->position++] = (uint8)(v >> 24 & 0xFF);
-		this->buffer[this->position++] = (uint8)(v >> 16 & 0xFF);
-		this->buffer[this->position++] = (uint8)(v >>  8 & 0xFF);
-		this->buffer[this->position++] = (uint8)(v       & 0xFF);
+	void Packet::putUShort(uint16 v) {
+		assert(this->position + sizeof(uint16) <= this->length);
+#if COMMON_LITTLE_ENDIAN
+		uint16 swapped = Common::swap16(v);
+		memcpy(this->buffer + this->position, &swapped, sizeof(uint16));
+#else
+		memcpy(this->buffer + this->position, &v, sizeof(uint16));
+#endif
+		this->position += sizeof(uint16);
 	}
 
 	void Packet::putTriad(int24 v) {
@@ -99,38 +107,78 @@ namespace RakLib {
 		this->buffer[this->position++] = (uint8)(v >> 16 & 0xFF);
 	}
 
+	void Packet::putInt(int32 v) {
+		assert(this->position + sizeof(int32) <= this->length);
+#if COMMON_LITTLE_ENDIAN
+		uint32 swapped = Common::swap32((uint32)v);
+		memcpy(this->buffer + this->position, &swapped, sizeof(uint32));
+#else
+		memcpy(this->buffer + this->position, &v, sizeof(int32));
+#endif
+		this->position += sizeof(int32);
+	}
 
-	void Packet::putFloat(f32 v) {
-		this->putInt((int32)v);
+	void Packet::putUInt(uint32 v) {
+		assert(this->position + sizeof(uint32) <= this->length);
+#if COMMON_LITTLE_ENDIAN
+		uint32 swapped = Common::swap32(v);
+		memcpy(this->buffer + this->position, &swapped, sizeof(uint32));
+#else
+		memcpy(this->buffer + this->position, &v, sizeof(uint32));
+#endif
+		this->position += sizeof(uint32);
 	}
 
 	void Packet::putLong(int64 v) {
 		assert(this->position + sizeof(int64) <= this->length);
-		this->buffer[this->position++] = (uint8)(v >> 56 & 0xFF);
-		this->buffer[this->position++] = (uint8)(v >> 48 & 0xFF);
-		this->buffer[this->position++] = (uint8)(v >> 40 & 0xFF);
-		this->buffer[this->position++] = (uint8)(v >> 32 & 0xFF);
-		this->buffer[this->position++] = (uint8)(v >> 24 & 0xFF);
-		this->buffer[this->position++] = (uint8)(v >> 16 & 0xFF);
-		this->buffer[this->position++] = (uint8)(v >>  8 & 0xFF);
-		this->buffer[this->position++] = (uint8)(v       & 0xFF);
+#if COMMON_LITTLE_ENDIAN
+		uint64 swapped = Common::swap64((uint64)v);
+		memcpy(this->buffer + this->position, &swapped, sizeof(uint64));
+#else
+		memcpy(this->buffer + this->position, &v, sizeof(int64));
+#endif
+		this->position += sizeof(int64);
+	}
+
+	void Packet::putULong(uint64 v) {
+		assert(this->position + sizeof(uint64) <= this->length);
+#if COMMON_LITTLE_ENDIAN
+		uint64 swapped = Common::swap64(v);
+		memcpy(this->buffer + this->position, &swapped, sizeof(uint64));
+#else
+		memcpy(this->buffer + this->position, &v, sizeof(uint64));
+#endif
+		this->position += sizeof(uint64);
+	}
+
+	void Packet::putFloat(f32 v) {
+		assert(this->position + sizeof(f32) <= this->length);
+#if COMMON_LITTLE_ENDIAN
+		f32 swapped = Common::swapf(v);
+		memcpy(this->buffer + this->position, &swapped, sizeof(f32));
+#else
+		memcpy(this->buffer + this->position, &v, sizeof(f32));
+#endif
+		this->position += sizeof(f32);
 	}
 
 	void Packet::putDouble(f64 v) {
-		this->putLong((int64)v);
+		assert(this->position + sizeof(f64) <= this->length);
+#if COMMON_LITTLE_ENDIAN
+		f64 swapped = Common::swapd(v);
+		memcpy(this->buffer + this->position, &swapped, sizeof(f64));
+#else
+		memcpy(this->buffer + this->position, &v, sizeof(f64));
+#endif
+		this->position += sizeof(f64);
 	}
 
 	void Packet::putString(const std::string& str) {
-		assert(this->position + str.length() + sizeof(int16) <= this->length);
-
-		size_t strSize = str.length();
-
-		this->buffer[this->position++] = (uint8)(strSize >> 8 & 0xFF);
-		this->buffer[this->position++] = (uint8)(strSize      & 0xFF);
-
-		for (size_t i = 0; i < strSize; ++i) {
-			this->buffer[this->position++] = str[i];
-		}
+		this->putUShort((uint16)str.length());
+		
+		assert(this->position + str.length() <= this->length);
+		memcpy(this->buffer + this->position, str.data(), str.length());
+		this->position += str.length();
 	}
 
 	// Read Methods
@@ -159,97 +207,124 @@ namespace RakLib {
 		return this->buffer[this->position++] == 0x01 ? true : false;
 	}
 
+	int16 Packet::getShort() {
+		assert(this->position + sizeof(int16) <= this->length);
+		int16 value = 0;
+		memcpy(&value, this->buffer + this->position, sizeof(int16));
+		this->position += sizeof(int16);
+#if COMMON_LITTLE_ENDIAN
+		return Common::swap16((uint16)value);
+#else
+		return value;
+#endif
+	}
+
+	uint16 Packet::getUShort() {
+		assert(this->position + sizeof(uint16) <= this->length);
+		uint16 value = 0;
+		memcpy(&value, this->buffer + this->position, sizeof(uint16));
+		this->position += sizeof(uint16);
+#if COMMON_LITTLE_ENDIAN
+		return Common::swap16(value);
+#else
+		return value;
+#endif
+	}
+
+	int24 Packet::getTriad() {
+		assert(this->position + 3 <= this->length);
+		return this->buffer[this->position++] << 16 & 0xFF | this->buffer[this->position++] << 8 & 0xFF | this->buffer[this->position++] & 0xFF;
+	}
+
+	int24 Packet::getLTriad() {
+		assert(this->position + 3 <= this->length);
+		return this->buffer[this->position++] & 0xFF | this->buffer[this->position++] << 8 & 0xFF | this->buffer[this->position++] << 16 & 0xFF;
+	}
+
+	int32 Packet::getInt() {
+		assert(this->position + sizeof(int32) <= this->length);
+		int32 value = 0;
+		memcpy(&value, this->buffer + this->position, sizeof(int32));
+		this->position += sizeof(int32);
+#if COMMON_LITTLE_ENDIAN
+		return Common::swap32((uint32)value);
+#else
+		return value;
+#endif
+	}
+
+	uint32 Packet::getUInt() {
+		assert(this->position + sizeof(uint32) <= this->length);
+		uint32 value = 0;
+		memcpy(&value, this->buffer + this->position, sizeof(uint32));
+		this->position += sizeof(uint32);
+#if COMMON_LITTLE_ENDIAN
+		return Common::swap32(value);
+#else
+		return value;
+#endif
+	}
+
+	int64 Packet::getLong() {
+		assert(this->position + sizeof(int64) <= this->length);
+		int64 value = 0;
+		memcpy(&value, this->buffer + this->position, sizeof(int64));
+		this->position += sizeof(int64);
+#if COMMON_LITTLE_ENDIAN
+		return Common::swap64((uint64)value);
+#else
+		return value;
+#endif
+	}
+
+	uint64 Packet::getULong() {
+		assert(this->position + sizeof(uint64) <= this->length);
+		uint64 value = 0;
+		memcpy(&value, this->buffer + this->position, sizeof(uint64));
+		this->position += sizeof(uint64);
+#if COMMON_LITTLE_ENDIAN
+		return Common::swap64(value);
+#else
+		return valuel
+#endif;
+	}
+
+	f32 Packet::getFloat() {
+		assert(this->position + sizeof(f32) <= this->length);
+		f32 value = 0;
+		memcpy(&value, this->buffer + this->position, sizeof(f32));
+		this->position += sizeof(f32);
+#if COMMON_LITTLE_ENDIAN
+		return Common::swapf(value);
+#else
+		return value;
+#endif
+	}
+
+	f64 Packet::getDouble() {
+		f64 value = 0;
+		memcpy(&value, this->buffer + this->position, sizeof(f64));
+		this->position += sizeof(f64);
+#if COMMON_LITTLE_ENDIAN
+		return Common::swapd(value);
+#else
+		return value;
+#endif
+	}
 
 	std::string Packet::getString() {
-		assert(this->position + sizeof(int16) <= this->length);
-		int16 size = getShort();
+		uint16 size = getUShort();
 
 		assert(this->position + size <= this->length);
 		std::string retval;
-		for (int16 i = 0; i < size; ++i) {
-			retval += (char)this->buffer[this->position++];
+		for (uint16 i = 0; i < size; ++i) {
+			retval += (char)this->buffer[this->position++] & 0xFF;
 		}
 
 		return retval;
 	}
 
-	short Packet::getShort() {
-		assert(this->position + sizeof(int16) <= this->length);
-
-		//WHY I CAN'T JUST DO: return (short) (((this->buffer[this->position++] << 8) & 0xFF) | (this->buffer[this->position++] & 0xFF)); 
-		//WTF??
-		this->position += 2;
-		return (short) (this->buffer[this->position - 2] << 8 & 0xFF | this->buffer[this->position - 1] & 0xFF);
-	}
-
-	int24 Packet::getTriad() {
-		assert(this->position + 3 <= this->length);
-		return (
-			this->buffer[this->position++] << 16 & 0xFF |
-			this->buffer[this->position++] <<  8 & 0xFF |
-			this->buffer[this->position++]       & 0xFF
-			);
-	}
-
-	int Packet::getLTriad() {
-		assert(this->position + 3 <= this->length);
-		return (
-			this->buffer[this->position++]       & 0xFF |
-			this->buffer[this->position++] <<  8 & 0xFF |
-			this->buffer[this->position++] << 16 & 0xFF
-			);
-	}
-
-	int32 Packet::getInt() {
-		assert(this->position + sizeof(int32) <= this->length);
-		return (
-			this->buffer[this->position++] << 24 & 0xFF |
-			this->buffer[this->position++] << 16 & 0xFF |
-			this->buffer[this->position++] <<  8 & 0xFF |
-			this->buffer[this->position++]       & 0xFF
-		);
-	}
-
-	f32 Packet::getFloat() {
-		return (f32)this->getInt();
-	}
-
-	int64 Packet::getLong() {
-		assert(this->position + sizeof(int64) <= this->length);
-		return (int64)
-			(
-			(int64)this->buffer[this->position++] << 56 & 0xFF |
-			(int64)this->buffer[this->position++] << 48 & 0xFF |
-			(int64)this->buffer[this->position++] << 40 & 0xFF |
-			(int64)this->buffer[this->position++] << 32 & 0xFF |
-			(int64)this->buffer[this->position++] << 24 & 0xFF |
-			(int64)this->buffer[this->position++] << 16 & 0xFF |
-			(int64)this->buffer[this->position++] <<  8 & 0xFF |
-			(int64)this->buffer[this->position++]       & 0xFF
-			);
-	}
-
-	uint64 Packet::getULong() {
-		assert(this->position + sizeof(uint64) <= this->length);
-		return (uint64)
-			(
-			(uint64)this->buffer[this->position++] << 56 |
-			(uint64)this->buffer[this->position++] << 48 |
-			(uint64)this->buffer[this->position++] << 40 |
-			(uint64)this->buffer[this->position++] << 32 |
-			(uint64)this->buffer[this->position++] << 24 |
-			(uint64)this->buffer[this->position++] << 16 |
-			(uint64)this->buffer[this->position++] <<  8 |
-			(uint64)this->buffer[this->position++]      
-			);
-	}
-
-	f64 Packet::getDouble() {
-		return (f64)this->getLong();
-	}
-
-
-	uint8& Packet::operator[] (uint32 index) {
+	uint8& Packet::operator[] (uint32 index) const {
 		assert(index < this->length);
 		return this->buffer[index];
 	}
@@ -285,7 +360,7 @@ namespace RakLib {
 	void Packet::print() {
 		for (uint32 i = 0; i < this->length; ++i) {
 			printf("%02X ", this->buffer[i]);
-			if (i != 0 && i % 8 == 0 || i == this->length - 1) {
+			if ((i + 1) % 8 == 0 || i == this->length - 1) {
 				printf("\n");
 			}
 		}
