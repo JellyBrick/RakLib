@@ -19,10 +19,10 @@ namespace RakLib {
 		uint32 splitIndex;
 
 	public:
-		static std::vector<InternalPacket*> fromBinary(uint8* buffer, uint32 size);
+		static std::vector<InternalPacket*> fromBinary(Packet& packet);
 
 		uint32 getLength() const;
-		Packet* toBinary();
+		std::unique_ptr<Packet> toBinary();
 		void close();
 	};
 

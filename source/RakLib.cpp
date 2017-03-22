@@ -78,14 +78,14 @@ namespace RakLib {
 				Request2 request(std::move(pck));
 				request.decode();
 
-				Reply2 reply (this->sessionManager->getIdentifier(), request.port, request.mtuSize, request.security);
+				Reply2 reply(this->sessionManager->getIdentifier(), request.port, request.mtuSize, request.security);
 				reply.encode();
 
 				reply.ip = request.ip;
 				reply.port = request.port;
 
 				this->socket->send(reply);
-				this->sessionManager->addSession(pck->ip, pck->port, request.clientID, reply.mtuSize);
+				this->sessionManager->addSession(request.ip, request.port, request.clientID, reply.mtuSize);
 			}
 			break;
 

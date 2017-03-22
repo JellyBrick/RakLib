@@ -7,7 +7,7 @@ namespace RakLib {
 	public:
 		bool security;
 		int32 cookie;
-		uint16 port;
+		uint16 rport;
 		uint16 mtuSize;
 		int64 clientID;
 

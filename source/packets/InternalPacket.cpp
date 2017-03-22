@@ -1,57 +1,59 @@
 #include "InternalPacket.h"
 
 namespace RakLib {
-	std::vector<InternalPacket*> InternalPacket::fromBinary(uint8* buffer, uint32 size) {
+	std::vector<InternalPacket*> InternalPacket::fromBinary(Packet& packet) {
 		std::vector<InternalPacket*> packets;
-		Packet pck(buffer, size);
-		while (pck.getPosition() < pck.getLength()) {
-			InternalPacket* packet = new InternalPacket();
-			uint8 flags = pck.getByte();
-			packet->reliability = (flags & 0xE0) >> 5;
-			packet->hasSplit = (flags & 0x10) > 0;
+		packet.print();
+		while (packet.getPosition() < packet.getLength()) {
+			InternalPacket* internalPacket = new InternalPacket();
+			uint8 flags = packet.getByte();
+			internalPacket->reliability = (flags & 0xE0) >> 5;
+			internalPacket->hasSplit = (flags & 0x10) > 0;
 
-			packet->length = (uint16)(pck.getShort() + 7) >> 3;
+
+			uint16 s = packet.getUShort();
+			internalPacket->length = (uint16)(s + 7) >> 3;
 
 			/*
-			* From http://www.jenkinssoftware.com/raknet/manual/reliabilitytypes.html
-			*
-			* Default: 0b010 (2) || 0b011 (3)
-			*
-			* 0: UNRELIABLE
-			* 1: UNRELIABLE_SEQUENCED
-			* 2: RELIABLE
-			* 3: RELIABLE_ORDERED
-			* 4: RELIABLE_SEQUENCED
-			* 5: UNRELIABLE_WITH_ACK_RECEIPT
-			* 6: RELIABLE_WITH_ACK_RECEIPT
-			* 7: RELIABLE_ORDERED_WITH_ACK_RECEIPT
-			*/
-			if (packet->reliability == 2 || packet->reliability == 3 || packet->reliability == 4 || packet->reliability == 6 || packet->reliability == 7) {
-				packet->messageIndex = pck.getLTriad();
+			 * From http://www.jenkinssoftware.com/raknet/manual/reliabilitytypes.html
+			 *
+			 * Default: 0b010 (2) || 0b011 (3)
+			 *
+			 * 0: UNRELIABLE
+			 * 1: UNRELIABLE_SEQUENCED
+			 * 2: RELIABLE
+			 * 3: RELIABLE_ORDERED
+			 * 4: RELIABLE_SEQUENCED
+			 * 5: UNRELIABLE_WITH_ACK_RECEIPT
+			 * 6: RELIABLE_WITH_ACK_RECEIPT
+			 * 7: RELIABLE_ORDERED_WITH_ACK_RECEIPT
+			 */
+			if (internalPacket->reliability == 2 || internalPacket->reliability == 3 || internalPacket->reliability == 4 || internalPacket->reliability == 6 || internalPacket->reliability == 7) {
+				internalPacket->messageIndex = packet.getLTriad();
 			}
 
-			if (packet->reliability == 1 || packet->reliability == 3 || packet->reliability == 4 || packet->reliability == 7) {
-				packet->orderIndex = pck.getLTriad();
-				packet->orderChannel = pck.getByte();
+			if (internalPacket->reliability == 1 || internalPacket->reliability == 3 || internalPacket->reliability == 4 || internalPacket->reliability == 7) {
+				internalPacket->orderIndex = packet.getLTriad();
+				internalPacket->orderChannel = packet.getByte();
 			}
 
-			if (packet->hasSplit) {
-				packet->splitCount = pck.getInt();
-				packet->splitID = pck.getShort();
-				packet->splitIndex = pck.getInt();
+			if (internalPacket->hasSplit) {
+				internalPacket->splitCount = packet.getInt();
+				internalPacket->splitID = packet.getShort();
+				internalPacket->splitIndex = packet.getInt();
 			}
 
-			packet->buff = pck.getByte(packet->length);
-			packets.push_back(packet);
+			internalPacket->buff = packet.getByte(internalPacket->length);
+			packets.push_back(internalPacket);
 		}
 		return packets;
 	}
 
 
-	Packet* InternalPacket::toBinary(){
-		Packet* packet = new Packet(getLength());
+	std::unique_ptr<Packet> InternalPacket::toBinary(){
+		auto packet = std::make_unique<Packet>(getLength());
 		packet->putByte((uint8)(this->reliability << 5 | (this->hasSplit ? 0x01 : 0x00)));
-		packet->putShort((short)(this->length << 3));
+		packet->putShort((int16)(this->length << 3));
 
 		if (this->reliability == 0x02 || this->reliability == 0x03 || this->reliability == 0x04 || this->reliability == 0x06 || this->reliability == 0x07) {
 			packet->putLTriad(this->messageIndex);
@@ -69,7 +71,7 @@ namespace RakLib {
 		}
 
 		packet->putByte(this->buff, this->length);
-		return packet;
+		return std::move(packet);
 	}
 
 	uint32 InternalPacket::getLength() const {

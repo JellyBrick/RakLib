@@ -2,13 +2,7 @@
 #include "Session.h"
 
 namespace RakLib {
-	Session::Session(std::string ip, uint16 port, int64 clientID, int16 mtu) : ip(ip), port(port), sequenceNum(0), lastSequenceNum(0), messageIndex(0) {
-		this->clientID = clientID;
-		this->mtuSize = mtu;
-
-		this->normalQueue = std::make_unique<CustomPacket>(nullptr, 0);
-		this->updateQueue = std::make_unique<CustomPacket>(nullptr, 0);
-	}
+	Session::Session(const std::string& ip, uint16 port, int64 clientID, int16 mtu) : ip(std::move(ip)), port(port), clientID(clientID), lastSequenceNum(0), sequenceNum(0), messageIndex(0), mtuSize(mtu) {}
 
 	//This method should be called often but not too often. 
 	void Session::update() {
@@ -17,10 +11,10 @@ namespace RakLib {
 			this->updateQueue->sequenceNumber = this->sequenceNum++;
 			this->updateQueue->encode();
 
-			this->sendPacket(*this->updateQueue.get());
+			this->sendPacket(*this->updateQueue);
 			this->recoveryQueue[this->updateQueue->sequenceNumber] = std::move(this->updateQueue);
 
-			this->updateQueue = std::make_unique<CustomPacket>(nullptr, 0);
+			this->updateQueue = std::make_unique<CustomPacket>();
 		}
 
 		if (!this->ACKQueue.empty()) {
@@ -46,20 +40,16 @@ namespace RakLib {
 			Acknowledge ack(std::move(packet));
 			ack.decode();
 
-			for (uint32 i : ack.sequenceNumbers) {
-				if (this->recoveryQueue[i] != nullptr) {
-					recoveryQueue.erase(i);
-				}
+			for (const auto& sequenceNumber : ack.sequenceNumbers) {
+				recoveryQueue.erase(sequenceNumber);
 			}
 
 		} else if (packetID == 0xA0) { // NACK
 			Acknowledge nack(std::move(packet));
 			nack.decode();
 
-			for (uint32 i : nack.sequenceNumbers) {
-				if (this->recoveryQueue[i] != nullptr) {
-					this->sendPacket(*this->recoveryQueue[i].get());
-				}
+			for (const auto& sequenceNumber : nack.sequenceNumbers) {
+				this->sendPacket(*this->recoveryQueue[sequenceNumber]);
 			}
 		} else if (packetID >= 0x80 && packetID <= 0x8F) {  // Custom Packets Range
 			CustomPacket customPacket(std::move(packet));
@@ -85,8 +75,8 @@ namespace RakLib {
 				}
 			}
 
-			for (InternalPacket* internalPacket : customPacket.packets) {
-				//TODO: Handle splitted packets
+			//TODO: Handle splitted packets
+			for (const auto& internalPacket : customPacket.packets) {
 				this->handleDataPacket(std::make_unique<DataPacket>(std::move(internalPacket)));
 			}
 		} else {
@@ -99,22 +89,21 @@ namespace RakLib {
 	void Session::addToQueue(std::unique_ptr<DataPacket> packet, QueuePriority priority) {
 		//TODO: Split packet if length > MTU
 		InternalPacket* internalPacket = new InternalPacket();
-		internalPacket->reliability = 2;
+		internalPacket->reliability = 0x02;
 		internalPacket->messageIndex = this->messageIndex++;
-		internalPacket->buff = packet->getBuffer();
 		internalPacket->length = packet->getLength();
+		internalPacket->buff = new uint8[internalPacket->length];
+		memcpy(internalPacket->buff, packet->getBuffer(), internalPacket->length);
 
 		if (priority == QueuePriority::IMMEDIATE) {
-			auto customPacket = std::make_unique<CustomPacket>(nullptr, 0);
+			auto customPacket = std::make_unique<CustomPacket>();
 			customPacket->packetID = 0x80;
 			customPacket->sequenceNumber = this->sequenceNum++;
-			
-			//Add the data packet
 			customPacket->packets.push_back(internalPacket); 
 			customPacket->encode();
 
-			this->sendPacket(*customPacket.get());
-			this->recoveryQueue[customPacket->sequenceNumber] = std::move(customPacket); // When we receive a notification that this packet have been received, the packet will be destroyed.
+			this->sendPacket(*customPacket);
+			this->recoveryQueue[customPacket->sequenceNumber] = std::move(customPacket);
 		} else if (priority == QueuePriority::UPDATE) {
 			this->updateQueue->packets.push_back(internalPacket);
 		} else if (priority == QueuePriority::FULLQ) {
@@ -124,12 +113,11 @@ namespace RakLib {
 				this->normalQueue->sequenceNumber = this->sequenceNum++;
 				this->normalQueue->encode();
 
-				this->sendPacket(*normalQueue.get());
-				this->recoveryQueue[this->normalQueue->sequenceNumber] = std::move(this->normalQueue); // When we receive a notification that this packet have been received, the packet will be destroyed.
+				this->sendPacket(*normalQueue);
+				this->recoveryQueue[this->normalQueue->sequenceNumber] = std::move(this->normalQueue);
 
-				this->normalQueue = std::make_unique<CustomPacket>(nullptr, 0);
+				this->normalQueue = std::make_unique<CustomPacket>();
 			}
-
 		}
 	}
 }

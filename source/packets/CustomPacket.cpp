@@ -1,18 +1,16 @@
 #include "CustomPacket.h"
 
 namespace RakLib {
-	CustomPacket::CustomPacket(std::unique_ptr<Packet> packet) : Packet(std::move(packet)) {}
+	CustomPacket::CustomPacket(std::unique_ptr<Packet> packet) : Packet(std::move(packet)), packetID(0x84), sequenceNumber(0) {}
 
-	CustomPacket::CustomPacket(uint8* data, uint32 size) : Packet(data, size) {}
+	CustomPacket::CustomPacket(uint8* data, uint32 size) : Packet(data, size), packetID(0x84), sequenceNumber(0) {}
 
-	CustomPacket::CustomPacket() {
-		this->packetID = 0x84;
-	}
+	CustomPacket::CustomPacket() : packetID(0x84), sequenceNumber(0) {}
 
 	CustomPacket::~CustomPacket() {
-		for (InternalPacket* pck : this->packets) {
-			pck->close();
-			delete pck;
+		for (const auto& internalPacket : this->packets) {
+			internalPacket->close();
+			delete internalPacket;
 		}
 
 		this->packets.clear();
@@ -20,8 +18,8 @@ namespace RakLib {
 
 	uint32 CustomPacket::getTotalLength() {
 		uint32 length = 4; // PacketID + sequence number(int24)
-		for (InternalPacket* pck : this->packets) {
-			length += pck->getLength();
+		for (const auto& internalPacket : this->packets) {
+			length += internalPacket->getLength();
 		}
 		return length;
 	}
@@ -29,19 +27,18 @@ namespace RakLib {
 	void CustomPacket::decode() {
 		this->packetID = this->getByte();
 		this->sequenceNumber = (uint32)this->getTriad();
-		this->packets = InternalPacket::fromBinary(this->buffer + this->position, this->length - 4);
+		this->packets = InternalPacket::fromBinary(*this);
 	}
 
 	void CustomPacket::encode() {
-		uint32 size = this->getTotalLength();
-		this->length = size;
-		this->buffer = new uint8[size];
+		this->length = this->getTotalLength();
+		this->buffer = new uint8[this->length];
 
 		this->putByte(this->packetID);
 		this->putLTriad((int24)this->sequenceNumber);
-		for (InternalPacket* pck : packets) {
-			Packet* temp = pck->toBinary();
-			this->putByte(temp->getBuffer(), temp->getLength());
+		for (const auto& internalPacket : packets) {
+			std::unique_ptr<Packet> packet = internalPacket->toBinary();
+			this->putByte(packet->getBuffer(), packet->getLength());
 		}
 	}
 }
