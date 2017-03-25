@@ -17,9 +17,8 @@ namespace RakLib {
 		this->length = size;
 	}
 
-	// This would not take ownership over the buffer
 	Packet::Packet(uint8* buffer, uint32 size) :  port(0) {
-		assert(buffer != nullptr);
+		assert(buffer != nullptr && size != 0);
 
 		this->buffer = new uint8[size];
 		memcpy(this->buffer, buffer, size);
@@ -28,25 +27,38 @@ namespace RakLib {
 		this->length = size;
 	}
 
-	// This would take ownership of the buffer
 	Packet::Packet(uint8* buffer, uint32 size, const std::string& ip, uint16 port) : ip(std::move(ip)), port(port) {
-		assert(buffer != nullptr);
+		assert(buffer != nullptr && size != 0);
 
 		this->buffer = buffer;
 		this->position = 0;
 		this->length = size;
 	}
 
-	// Should I take ownership?
-	Packet::Packet(std::unique_ptr<Packet> other) {
-		this->buffer = new uint8[other->getLength()];
-		memcpy(this->buffer, other->getBuffer(), other->getLength());
+	Packet::Packet(std::unique_ptr<Packet> other) : buffer(nullptr), length(0), position(0) {
+		assert(other);
 
+		this->swap(*other);
 		this->position = 0;
-		this->length = other->getLength();
 
-		this->ip = other->ip;
-		this->port = other->port;
+		std::swap(this->ip, other->ip);
+		std::swap(this->port, other->port);
+	}
+
+	Packet::Packet(Packet&& other) noexcept
+		: ip(other.ip), port(other.port), 
+		length(other.length), position(other.position), 
+		buffer(other.buffer) 
+	{
+		other.buffer = nullptr;
+		other.length = 0;
+		other.position = 0;
+	}
+
+	Packet& Packet::operator=(Packet&& other) {
+		close();
+		this->swap(other);
+		return *this;
 	}
 
 	// Write Methods
@@ -188,7 +200,11 @@ namespace RakLib {
 	}
 
 	uint8* Packet::getByte(uint32 size) {
-		assert(size != 0 && this->position + size <= this->length);
+		assert(this->position + size <= this->length);
+
+		if (size == 0) {
+			return nullptr;
+		}
 
 		uint8* retval = new uint8[size];
 		memcpy(retval, this->buffer + this->position, size);
@@ -213,7 +229,7 @@ namespace RakLib {
 		memcpy(&value, this->buffer + this->position, sizeof(int16));
 		this->position += sizeof(int16);
 #if COMMON_LITTLE_ENDIAN
-		return Common::swap16((uint16)value);
+		return (int16)Common::swap16((uint16)value);
 #else
 		return value;
 #endif
@@ -247,7 +263,7 @@ namespace RakLib {
 		memcpy(&value, this->buffer + this->position, sizeof(int32));
 		this->position += sizeof(int32);
 #if COMMON_LITTLE_ENDIAN
-		return Common::swap32((uint32)value);
+		return (int32)Common::swap32((uint32)value);
 #else
 		return value;
 #endif
@@ -271,7 +287,7 @@ namespace RakLib {
 		memcpy(&value, this->buffer + this->position, sizeof(int64));
 		this->position += sizeof(int64);
 #if COMMON_LITTLE_ENDIAN
-		return Common::swap64((uint64)value);
+		return (int64)Common::swap64((uint64)value);
 #else
 		return value;
 #endif
@@ -341,12 +357,18 @@ namespace RakLib {
 		return this->buffer;
 	}
 
-	void Packet::setPosition(uint32 position) {
-		this->position = position;
+	void Packet::setPosition(uint32 newPosition) {
+		this->position = newPosition;
 	}
 
-	void Packet::resize(size_t size) {
-		size_t newSize = min(size, length);
+	void Packet::swap(Packet& other) {
+		std::swap(this->buffer, other.buffer);
+		std::swap(this->position, other.position);
+		std::swap(this->length, other.length);
+	}
+
+	void Packet::resize(uint32 size) {
+		uint32 newSize = min(size, length);
 
 		uint8* newBuffer = new uint8[size];
 		memcpy(newBuffer, this->buffer, newSize);
@@ -357,7 +379,7 @@ namespace RakLib {
 		this->length = size;
 	}
 
-	void Packet::print() {
+	void Packet::print() const {
 		for (uint32 i = 0; i < this->length; ++i) {
 			printf("%02X ", this->buffer[i]);
 			if ((i + 1) % 8 == 0 || i == this->length - 1) {
@@ -372,9 +394,12 @@ namespace RakLib {
 	}
 
 	void Packet::close() {
-		delete[] this->buffer;
-		this->length = 0;
-		this->position = 0;
+		if (buffer != nullptr) {
+			delete[] this->buffer;
+			this->buffer = nullptr;
+			this->length = 0;
+			this->position = 0;
+		}
 	}
 
 	Packet::~Packet() {

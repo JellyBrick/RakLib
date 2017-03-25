@@ -17,7 +17,12 @@ namespace RakLib {
 		uint8* buffer;
 
 	public:
-		static const uint32 DEFAULT_BUFFER_SIZE = 1024 * 5;
+		/*
+		 * Maximum recommended size of a packet by RakNet.
+		 * @Source: http://www.jenkinssoftware.com/raknet/manual/programmingtips.html
+		 * 
+		 */
+		static const uint32 DEFAULT_BUFFER_SIZE = 1470;
 
 	public:
 		Packet();
@@ -25,6 +30,11 @@ namespace RakLib {
 		Packet(uint8* buff, uint32 size);
 		Packet(uint8* buff, uint32 size, const std::string& ip, uint16 port);
 		Packet(std::unique_ptr<Packet> other);
+
+		// Movable
+		Packet(Packet&& other) noexcept;
+		Packet& operator=(Packet&& other);
+
 		virtual ~Packet();
 
 		//Write Methods
@@ -86,9 +96,17 @@ namespace RakLib {
 		void setPosition(uint32);
 		uint32 getPosition() const;
 
-		void resize(size_t);
-		void print();
+		void swap(Packet& other);
+
+		void resize(uint32 size);
+		void print() const;
 		void clear();
 		void close();
+
+	private:
+		// Non-Copyable
+		Packet(const Packet&) = delete;
+		Packet& operator=(Packet&) = delete;
+
 	};
 }

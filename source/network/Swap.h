@@ -26,7 +26,7 @@
 #include <sys/endian.h>
 #endif
 #include <cstring>
-#include "Common.h"
+#include "../Common.h"
 
 // GCC 4.6+
 #if __GNUC__ >= 5 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
@@ -127,8 +127,8 @@ namespace Common {
 	}
 #endif
 
-	inline float swapf(float f) {
-		static_assert(sizeof(uint32) == sizeof(float), "float must be the same size as uint32_t.");
+	inline f32 swapf(f32 f) {
+		static_assert(sizeof(uint32) == sizeof(f32), "f32 must be the same size as uint32_t.");
 
 		uint32 value;
 		std::memcpy(&value, &f, sizeof(uint32));
@@ -139,8 +139,8 @@ namespace Common {
 		return f;
 	}
 
-	inline double swapd(double f) {
-		static_assert(sizeof(uint64) == sizeof(double), "double must be the same size as uint64_t.");
+	inline f64 swapd(f64 f) {
+		static_assert(sizeof(uint64) == sizeof(f64), "f64 must be the same size as uint64_t.");
 
 		uint64 value;
 		std::memcpy(&value, &f, sizeof(uint64));
@@ -201,11 +201,11 @@ public:
 	operator uint64() const {
 		return (uint64)swap();
 	}
-	operator float() const {
-		return (float)swap();
+	operator f32() const {
+		return (f32)swap();
 	}
-	operator double() const {
-		return (double)swap();
+	operator f64() const {
+		return (f64)swap();
 	}
 
 	// +v
@@ -580,14 +580,14 @@ struct swap_16_t {
 };
 
 template <typename T>
-struct swap_float_t {
+struct swap_f32_t {
 	static T swap(T x) {
 		return static_cast<T>(Common::swapf(x));
 	}
 };
 
 template <typename T>
-struct swap_double_t {
+struct swap_f64_t {
 	static T swap(T x) {
 		return static_cast<T>(Common::swapd(x));
 	}
@@ -614,8 +614,8 @@ typedef swap_struct_t<int32, swap_32_t<int32>> int32_be;
 typedef swap_struct_t<uint16, swap_16_t<uint16>> uint16_be;
 typedef swap_struct_t<int16, swap_16_t<int16>> int16_be;
 
-typedef swap_struct_t<f32, swap_float_t<f32>> f32_be;
-typedef swap_struct_t<f64, swap_double_t<f64>> f64_be;
+typedef swap_struct_t<f32, swap_f32_t<f32>> f32_be;
+typedef swap_struct_t<f64, swap_f64_t<f64>> f64_be;
 #else
 
 typedef uint32 uint32_be;
@@ -626,8 +626,8 @@ typedef int32 int32_be;
 typedef int16 int16_be;
 typedef int64 int64_be;
 
-typedef f32 float_be;
-typedef f64 double_be;
+typedef f32 f32_be;
+typedef f64 f64_be;
 
 typedef swap_struct_t<uint64, swap_64_t<uint64>> uint64_le;
 typedef swap_struct_t<int64, swap_64_t<int64>> int64_le;
@@ -638,7 +638,7 @@ typedef swap_struct_t<int32, swap_32_t<int32>> int32_le;
 typedef swap_struct_t<uint16, swap_16_t<uint16>> uint16_le;
 typedef swap_struct_t<int16, swap_16_t<int16>> int16_le;
 
-typedef swap_struct_t<f32, swap_float_t<f32>> f32_le;
-typedef swap_struct_t<f64, swap_double_t<f64>> f64_le;
+typedef swap_struct_t<f32, swap_f32_t<f32>> f32_le;
+typedef swap_struct_t<f64, swap_f64_t<f64>> f64_le;
 
 #endif
