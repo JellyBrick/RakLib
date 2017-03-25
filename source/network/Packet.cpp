@@ -18,10 +18,10 @@ namespace RakLib {
 	}
 
 	Packet::Packet(uint8* buffer, uint32 size) :  port(0) {
-		assert(buffer != nullptr && size != 0);
-
-		this->buffer = new uint8[size];
-		memcpy(this->buffer, buffer, size);
+		if (buffer != nullptr && size != 0) {
+			this->buffer = new uint8[size];
+			memcpy(this->buffer, buffer, size);
+		}
 
 		this->position = 0;
 		this->length = size;
@@ -35,7 +35,7 @@ namespace RakLib {
 		this->length = size;
 	}
 
-	Packet::Packet(std::unique_ptr<Packet> other) : buffer(nullptr), length(0), position(0) {
+	Packet::Packet(std::unique_ptr<Packet> other) : length(0), position(0), buffer(nullptr) {
 		assert(other);
 
 		this->swap(*other);

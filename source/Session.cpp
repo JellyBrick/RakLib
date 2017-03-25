@@ -2,7 +2,10 @@
 #include "Session.h"
 
 namespace RakLib {
-	Session::Session(const std::string& ip, uint16 port, int64 clientID, int16 mtu) : ip(std::move(ip)), port(port), clientID(clientID), lastSequenceNum(0), sequenceNum(0), messageIndex(0), mtuSize(mtu) {}
+	Session::Session(const std::string& ip, uint16 port, int64 clientID, int16 mtu) : ip(std::move(ip)), port(port), clientID(clientID), lastSequenceNum(0), sequenceNum(0), messageIndex(0), mtuSize(mtu) {
+		this->updateQueue = std::make_unique<CustomPacket>(nullptr, 0);
+		this->normalQueue = std::make_unique<CustomPacket>(nullptr, 0);
+	}
 
 	//This method should be called often but not too often. 
 	void Session::update() {
@@ -14,7 +17,7 @@ namespace RakLib {
 			this->sendPacket(*this->updateQueue);
 			this->recoveryQueue[this->updateQueue->sequenceNumber] = std::move(this->updateQueue);
 
-			this->updateQueue = std::make_unique<CustomPacket>();
+			this->updateQueue = std::make_unique<CustomPacket>(nullptr, 0);
 		}
 
 		if (!this->ACKQueue.empty()) {
@@ -49,7 +52,9 @@ namespace RakLib {
 			nack.decode();
 
 			for (const auto& sequenceNumber : nack.sequenceNumbers) {
-				this->sendPacket(*this->recoveryQueue[sequenceNumber]);
+				if (this->recoveryQueue[sequenceNumber]) {
+					this->sendPacket(*this->recoveryQueue[sequenceNumber]);
+				}
 			}
 		} else if (packetID >= 0x80 && packetID <= 0x8F) {  // Custom Packets Range
 			CustomPacket customPacket(std::move(packet));
@@ -90,12 +95,12 @@ namespace RakLib {
 		InternalPacket* internalPacket = new InternalPacket();
 		internalPacket->reliability = 0x02;
 		internalPacket->messageIndex = this->messageIndex++;
-		internalPacket->length = packet->getLength();
+		internalPacket->length = (uint16)packet->getLength();
 		internalPacket->buff = new uint8[internalPacket->length];
 		memcpy(internalPacket->buff, packet->getBuffer(), internalPacket->length);
 
 		if (priority == QueuePriority::IMMEDIATE) {
-			auto customPacket = std::make_unique<CustomPacket>();
+			auto customPacket = std::make_unique<CustomPacket>(nullptr, 0);
 			customPacket->packetID = 0x80;
 			customPacket->sequenceNumber = this->sequenceNum++;
 			customPacket->packets.push_back(internalPacket); 
@@ -115,7 +120,7 @@ namespace RakLib {
 				this->sendPacket(*normalQueue);
 				this->recoveryQueue[this->normalQueue->sequenceNumber] = std::move(this->normalQueue);
 
-				this->normalQueue = std::make_unique<CustomPacket>();
+				this->normalQueue = std::make_unique<CustomPacket>(nullptr, 0);
 			}
 		}
 	}
