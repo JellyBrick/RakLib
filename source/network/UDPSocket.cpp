@@ -19,6 +19,7 @@ namespace RakLib {
 			return;
 		}
 
+		this->setOptions();
 		this->bind(ip, port);
 	}
 
@@ -36,7 +37,7 @@ namespace RakLib {
 		}
 
 		if (::bind(this->sock, (sockaddr*) &addr, sizeof(sockaddr_in)) == -1) {
-			std::cout << "Could not bind the socket!";
+			std::cout << "Could not bind the socket. Maybe another program is using it\n";
 #ifdef WIN32 
 			std::cout << " Error Code: " << WSAGetLastError() << std::endl;
 			WSACleanup();
@@ -53,7 +54,7 @@ namespace RakLib {
 		int sie = sizeof(sockaddr_in);
 		socklen_t size = recvfrom(this->sock, (char*)buffer, Packet::DEFAULT_BUFFER_SIZE, 0, (sockaddr*)&recv, (socklen_t*)&sie);
 		if (size == -1) {
-			std::cout << "Could not receive the packet!";
+			std::cout << "Could not receive the packet.";
 #ifdef WIN32 
 			std::cout << " Error Code: " << WSAGetLastError() << std::endl;
 			WSACleanup();
@@ -93,6 +94,17 @@ namespace RakLib {
 #else
 		close(this->sock);
 #endif
+	}
+
+	void UDPSocket::setOptions() const {
+		// Set maximun Receive Buffer Size
+		setsockopt(this->sock, SOL_SOCKET, SO_RCVBUF, (char*)&Packet::DEFAULT_BUFFER_SIZE, sizeof(Packet::DEFAULT_BUFFER_SIZE));
+		// Set socket bound to this proccess
+		bool exclusiveUse = true;
+		setsockopt(this->sock, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (char*)&exclusiveUse, sizeof(exclusiveUse));
+		// Set socket to not reuse adress if already in use
+		bool reuseAddress = false;
+		setsockopt(this->sock, SOL_SOCKET, SO_REUSEADDR, (char*)reuseAddress, sizeof(reuseAddress));
 	}
 
 	UDPSocket::~UDPSocket() {

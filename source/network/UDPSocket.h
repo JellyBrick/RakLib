@@ -42,5 +42,7 @@ namespace RakLib {
 		int send(const Packet& packet) const;
 
 		void close() const;
+	private:
+		void setOptions() const;
 	};
 }

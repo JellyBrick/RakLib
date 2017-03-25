@@ -18,11 +18,13 @@ namespace RakLib {
 
 	public:
 		/*
+		 * Value: 1470
 		 * Maximum recommended size of a packet by RakNet.
 		 * @Source: http://www.jenkinssoftware.com/raknet/manual/programmingtips.html
 		 * 
+		 * We use 1600 since 1470 don't take in packet header. So we bump it a little bit
 		 */
-		static const uint32 DEFAULT_BUFFER_SIZE = 1470;
+		static const uint32 DEFAULT_BUFFER_SIZE = 1024 * 1024;
 
 	public:
 		Packet();
