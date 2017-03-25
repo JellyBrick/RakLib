@@ -5,6 +5,8 @@ namespace RakLib {
 
 	CustomPacket::CustomPacket(uint8* data, uint32 size) : Packet(data, size), packetID(0x84), sequenceNumber(0) {}
 
+	CustomPacket::CustomPacket(uint32 size) : Packet(size), packetID(0x84), sequenceNumber(0) {}
+
 	CustomPacket::CustomPacket() : packetID(0x84), sequenceNumber(0) {}
 
 	CustomPacket::~CustomPacket() {
@@ -17,11 +19,11 @@ namespace RakLib {
 	}
 
 	uint32 CustomPacket::getTotalLength() {
-		uint32 length = 4; // PacketID + sequence number(int24)
+		uint32 totalLength = 4; // PacketID + sequence number(int24)
 		for (const auto& internalPacket : this->packets) {
-			length += internalPacket->getLength();
+			totalLength += internalPacket->getLength();
 		}
-		return length;
+		return totalLength;
 	}
 
 	void CustomPacket::decode() {

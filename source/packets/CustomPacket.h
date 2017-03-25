@@ -14,6 +14,7 @@ namespace RakLib {
 	public:
 		CustomPacket(std::unique_ptr<Packet> packet);
 		CustomPacket(uint8* data, uint32 size);
+		CustomPacket(uint32 size);
 		CustomPacket();
 
 		virtual ~CustomPacket();
