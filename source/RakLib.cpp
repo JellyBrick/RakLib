@@ -14,7 +14,7 @@
 
 namespace RakLib {
 	RakLib::RakLib(SessionManager* sessionManager, const std::string& ip, uint16 port) {
-		this->ip = ip;
+		this->ip = ip == "0.0.0.0" ? "" : ip;
 		this->port = port;
 		this->running = false;
 		this->sessionManager = sessionManager;

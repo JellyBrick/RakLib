@@ -7,10 +7,10 @@ namespace RakLib {
 	public:
 		bool security;
 		int64 serverID;
-		int16 mtuSize;
+		uint16 mtuSize;
 
 	public:
-		Reply1(bool security, int64 serverid, int16 mtu);
+		Reply1(bool security, int64 serverid, uint16 mtuSize);
 
 		void encode();
 	};

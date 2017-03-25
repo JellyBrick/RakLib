@@ -36,11 +36,11 @@ namespace RakLib {
 		UDPSocket(const std::string& ip, uint16 port);
 		~UDPSocket();
 
-		bool bind(const std::string& ip, uint16 port);
+		bool bind(const std::string& ip, uint16 port) const;
 
-		std::unique_ptr<Packet> receive();
-		int send(const Packet& packet);
+		std::unique_ptr<Packet> receive() const;
+		int send(const Packet& packet) const;
 
-		void close();
+		void close() const;
 	};
 }

@@ -51,11 +51,11 @@ namespace RakLib {
 			++records;
 		}
 
-		uint32 length = this->position;
+		uint32 size = this->position;
 		this->position = 0;
 		this->putByte(this->pid);
 		this->putShort(records);
-		this->resize(length);
+		this->resize(size);
 	}
 
 	void Acknowledge::decode() {

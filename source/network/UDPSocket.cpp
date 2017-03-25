@@ -22,7 +22,7 @@ namespace RakLib {
 		this->bind(ip, port);
 	}
 
-	bool UDPSocket::bind(const std::string& ip, uint16 port) {
+	bool UDPSocket::bind(const std::string& ip, uint16 port) const {
 		sockaddr_in addr;
 		memset(&addr, 0, sizeof(addr));
 
@@ -46,7 +46,7 @@ namespace RakLib {
 		return true;
 	}
 
-	std::unique_ptr<Packet> UDPSocket::receive() {
+	std::unique_ptr<Packet> UDPSocket::receive() const {
 		sockaddr_in recv;
 		uint8* buffer = new uint8[Packet::DEFAULT_BUFFER_SIZE];
 
@@ -67,7 +67,7 @@ namespace RakLib {
 		return std::make_unique<Packet>(buffer, size, ip, recv.sin_port);
 	}
 
-	int UDPSocket::send(const Packet& packet) {
+	int UDPSocket::send(const Packet& packet) const {
 		sockaddr_in sendaddr;
 		sendaddr.sin_family = AF_INET;
 		sendaddr.sin_port = packet.port;
@@ -86,7 +86,7 @@ namespace RakLib {
 		return size;
 	}
 
-	void UDPSocket::close() {
+	void UDPSocket::close() const {
 #ifdef _WIN32
 		closesocket(this->sock);
 		WSACleanup();

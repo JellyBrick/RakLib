@@ -6,7 +6,7 @@ namespace RakLib {
 	void Request1::decode() {
 		this->position += 17; // Skip Raknet Magic AND Packet ID
 		this->version = this->getByte();
-		this->mtuSize = (int16)(this->length - this->position);
+		this->mtuSize = (uint16)(this->length - this->position);
 	}
 
 }

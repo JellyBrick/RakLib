@@ -80,7 +80,6 @@ namespace RakLib {
 				this->handleDataPacket(std::make_unique<DataPacket>(std::move(internalPacket)));
 			}
 		} else {
-			//This packet is unknown. You could implement a plugin that handle unknown packet
 			this->handleDataPacket(std::make_unique<DataPacket>(std::move(packet)));
 		}
 	}
