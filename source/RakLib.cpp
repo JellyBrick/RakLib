@@ -13,11 +13,11 @@
 #include "Session.h"
 
 namespace RakLib {
-	RakLib::RakLib(SessionManager* sessionManager, const std::string& ip, uint16 port) {
-		this->ip = ip == "0.0.0.0" ? "" : ip;
-		this->port = port;
+	RakLib::RakLib(SessionManager* server, const std::string& serverIP, uint16 serverPort) {
+		this->sessionManager = server;
+		this->ip = serverIP;
+		this->port = serverPort;
 		this->running = false;
-		this->sessionManager = sessionManager;
 	}
 
 	void RakLib::start() {

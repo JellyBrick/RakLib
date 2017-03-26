@@ -20,7 +20,7 @@ namespace RakLib {
 		bool running;
 
 	public:
-		RakLib(SessionManager* sessionManager, const std::string& ip, uint16 port);
+		RakLib(SessionManager* server, const std::string& serverIP, uint16 serverPort);
 
 		const std::string& getIP() const { return this->ip; };
 		uint16 getPort() const { return this->port; };
