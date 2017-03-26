@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <vector>
 
 #include "../Network/Packet.h"
@@ -11,8 +12,8 @@ namespace RakLib {
 		uint8 pid; // ACK || NACK
 
 	public:
-		Acknowledge(uint8 pid, std::vector<uint32> sequenzeNum);
-		Acknowledge(std::unique_ptr<Packet> pck);
+		Acknowledge(uint8 pid, const std::vector<uint32>& sequenzeNum);
+		Acknowledge(std::unique_ptr<Packet>&& packet);
 
 		void decode();
 		void encode();

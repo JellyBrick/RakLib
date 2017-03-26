@@ -3,12 +3,11 @@
 #include <algorithm>
 
 namespace RakLib {
-	Acknowledge::Acknowledge(uint8 pid, std::vector<uint32> sequenzeNum) : Packet(2048) {
-		this->pid = pid;
-		this->sequenceNumbers = sequenzeNum;
-	}
+	Acknowledge::Acknowledge(uint8 packetID, const std::vector<uint32>& sequenceArray) : Packet(2048), pid(packetID), sequenceNumbers(sequenceArray) {}
 
-	Acknowledge::Acknowledge(std::unique_ptr<Packet> pck) : Packet(std::move(pck)), pid(0) {}
+	Acknowledge::Acknowledge(std::unique_ptr<Packet>&& packet) : Packet(packet->getBuffer(), packet->getLength(), "", 0), pid(0) {
+		packet->release();
+	}
 
 	void Acknowledge::encode() {
 		this->position = 3;
@@ -60,17 +59,17 @@ namespace RakLib {
 
 	void Acknowledge::decode() {
 		this->pid = this->getByte();
-		int count = this->getShort();
+		int16 count = this->getShort();
 
-		for (int i = 0; i < count; ++i) {
-			if (this->getByte() == 0x00) {
-				int start = this->getLTriad();
-				int end = this->getLTriad();
-				if ((end - start) > 4096) {
+		for (int16 i = 0; i < count; ++i) {
+			if (!this->getBool()) {
+				int24 start = this->getLTriad();
+				int24 end = this->getLTriad();
+				if (end - start > 4096) {
 					end = start + 4096;
 				}
 
-				for (int c = start; c <= end; ++c) {
+				for (int24 c = start; c <= end; ++c) {
 					this->sequenceNumbers.push_back(c);
 				}
 			} else {

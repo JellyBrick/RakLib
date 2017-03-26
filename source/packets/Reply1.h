@@ -12,6 +12,6 @@ namespace RakLib {
 	public:
 		Reply1(bool security, int64 serverid, uint16 mtuSize);
 
-		void encode();
+		void encode() override;
 	};
 }

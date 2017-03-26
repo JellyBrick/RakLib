@@ -13,7 +13,7 @@ namespace RakLib {
 	public:
 		Reply2(int64 serverID, uint16 rport, int16 mtu, bool security);
 
-		void encode();
+		void encode() override;
 
 	};
 }

@@ -3,19 +3,19 @@
 #include <memory>
 
 #include "../network/Packet.h"
-#include "Info.h"
-
 
 namespace RakLib {
 	class LoginPacket : public Packet {
 	public:
-		LoginPacket();
-		LoginPacket(std::unique_ptr<Packet> pck);
+		static constexpr uint32 RAKNET_MAGIC_LENGTH = 16;
+
+	public:
 		LoginPacket(uint32 size);
+		LoginPacket(std::unique_ptr<Packet>&& packet);
 
 		virtual void decode();
 		virtual void encode();
 
-		uint8* getMagic();
+		uint8* getMagic() const;
 	};
 }

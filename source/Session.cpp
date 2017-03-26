@@ -3,8 +3,8 @@
 
 namespace RakLib {
 	Session::Session(const std::string& ip, uint16 port, int64 clientID, int16 mtu) : ip(std::move(ip)), port(port), clientID(clientID), lastSequenceNum(0), sequenceNum(0), messageIndex(0), mtuSize(mtu) {
-		this->updateQueue = std::make_unique<CustomPacket>(nullptr, 0);
-		this->normalQueue = std::make_unique<CustomPacket>(nullptr, 0);
+		this->updateQueue = std::make_unique<CustomPacket>();
+		this->normalQueue = std::make_unique<CustomPacket>();
 	}
 
 	//This method should be called often but not too often. 
@@ -17,7 +17,7 @@ namespace RakLib {
 			this->sendPacket(*this->updateQueue);
 			this->recoveryQueue[this->updateQueue->sequenceNumber] = std::move(this->updateQueue);
 
-			this->updateQueue = std::make_unique<CustomPacket>(nullptr, 0);
+			this->updateQueue = std::make_unique<CustomPacket>();
 		}
 
 		if (!this->ACKQueue.empty()) {
@@ -82,10 +82,10 @@ namespace RakLib {
 
 			//TODO: Handle splitted packets
 			for (const auto& internalPacket : customPacket.packets) {
-				this->handleDataPacket(std::make_unique<DataPacket>(std::move(internalPacket)));
+				this->handleDataPacket(std::make_unique<Packet>(internalPacket->buff, (uint32)internalPacket->length, "", 0));
 			}
 		} else {
-			this->handleDataPacket(std::make_unique<DataPacket>(std::move(packet)));
+			this->handleDataPacket(std::move(packet));
 		}
 	}
 
@@ -100,7 +100,7 @@ namespace RakLib {
 		memcpy(internalPacket->buff, packet->getBuffer(), internalPacket->length);
 
 		if (priority == QueuePriority::IMMEDIATE) {
-			auto customPacket = std::make_unique<CustomPacket>(nullptr, 0);
+			auto customPacket = std::make_unique<CustomPacket>();
 			customPacket->packetID = 0x80;
 			customPacket->sequenceNumber = this->sequenceNum++;
 			customPacket->packets.push_back(internalPacket); 
@@ -120,7 +120,7 @@ namespace RakLib {
 				this->sendPacket(*normalQueue);
 				this->recoveryQueue[this->normalQueue->sequenceNumber] = std::move(this->normalQueue);
 
-				this->normalQueue = std::make_unique<CustomPacket>(nullptr, 0);
+				this->normalQueue = std::make_unique<CustomPacket>();
 			}
 		}
 	}

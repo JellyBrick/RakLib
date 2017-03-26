@@ -5,10 +5,10 @@
 namespace RakLib {
 	class UnConnectedPing : public LoginPacket {
 	public:
-		int64 pingID;
+		uint64 pingID;
 
 	public:
-		UnConnectedPing(std::unique_ptr<Packet> pck);
+		UnConnectedPing(std::unique_ptr<Packet>&& packet);
 
 		void decode() override;
 	};

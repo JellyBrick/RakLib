@@ -1,20 +1,20 @@
 #pragma once
 
-#include "InternalPacket.h"
+#include <memory>
+
 #include "../network/Packet.h"
 
 namespace RakLib {
 	class DataPacket : public Packet {
 	public:
-		DataPacket(InternalPacket* pck) : Packet(pck->buff, pck->length) {}
-
-		DataPacket(std::unique_ptr<Packet> packet) : Packet(std::move(packet)) {}
-
 		DataPacket(uint32 size) : Packet(size) {}
 
-		DataPacket() : Packet() {}
+		DataPacket(std::unique_ptr<Packet>&& packet) : Packet(packet->getBuffer(), packet->getLength(), "", 0) {
+			packet->release();
+		}
 
-		virtual void encode() { };
-		virtual void decode() { };
+		virtual void encode() {}
+
+		virtual void decode() {}
 	};
 }

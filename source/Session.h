@@ -45,12 +45,14 @@ namespace RakLib {
 
 		virtual void receivePacket(std::unique_ptr<Packet> packet);
 
-		virtual void handleDataPacket(std::unique_ptr<DataPacket> packet) = 0;
+		virtual void handleDataPacket(std::unique_ptr<Packet> packet) = 0;
 
 		virtual void addToQueue(std::unique_ptr<DataPacket> packet, QueuePriority priority);
+
 		virtual void sendPacket(Packet& packet) = 0;
 
 		const std::string& getIP() const { return ip; };
+
 		uint16 getPort() const { return port; };
 	};
 }

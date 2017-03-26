@@ -12,8 +12,8 @@ namespace RakLib {
 		int64 clientID;
 
 	public:
-		Request2(std::unique_ptr<Packet> packet);
+		Request2(std::unique_ptr<Packet>&& packet);
 
-		void decode();
+		void decode() override;
 	};
 }

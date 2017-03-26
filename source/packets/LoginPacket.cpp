@@ -2,17 +2,19 @@
 #include "LoginPacket.h"
 
 namespace RakLib {
-	LoginPacket::LoginPacket() : Packet() {}
-
-	LoginPacket::LoginPacket(std::unique_ptr<Packet> pck) : Packet(std::move(pck)) {}
-
 	LoginPacket::LoginPacket(uint32 size) : Packet(size) {}
 
+	LoginPacket::LoginPacket(std::unique_ptr<Packet>&& packet) : Packet(packet->getBuffer(), packet->getLength(), std::move(packet->ip), packet->port) {
+		packet->release();
+	}
+
 	void LoginPacket::encode() {}
+
 	void LoginPacket::decode() {}
 
-	uint8* LoginPacket::getMagic() {
-		static uint8* RAKNET_MAGIC = new uint8[16] { (uint8)0x00, (uint8)0xff, (uint8)0xff, (uint8)0x00, (uint8)0xfe, (uint8)0xfe, (uint8)0xfe, (uint8)0xfe, (uint8)0xfd, (uint8)0xfd, (uint8)0xfd, (uint8)0xfd, (uint8)0x12, (uint8)0x34, (uint8)0x56, (uint8)0x78 };
+	uint8* LoginPacket::getMagic() const {
+		static uint8* RAKNET_MAGIC = new uint8[RAKNET_MAGIC_LENGTH] { (uint8)0x00, (uint8)0xff, (uint8)0xff, (uint8)0x00, (uint8)0xfe, (uint8)0xfe, (uint8)0xfe, (uint8)0xfe, (uint8)0xfd, (uint8)0xfd, (uint8)0xfd, (uint8)0xfd, (uint8)0x12, (uint8)0x34, (uint8)0x56, (uint8)0x78 };
 		return RAKNET_MAGIC;
 	}
+
 }

@@ -28,16 +28,16 @@ namespace RakLib {
 		this->mainThread = std::thread(&RakLib::run, this);
 	}
 
-	void RakLib::run() {
+	void RakLib::run() const {
 		while (this->running) {
-			std::unique_ptr<Packet> pck = this->socket->receive();
-			uint8 pid = pck->getBuffer()[0];
+			std::unique_ptr<Packet> packet = this->socket->receive();
+			uint8 pid = packet->getBuffer()[0];
 
 			switch (pid) {
 			case Packets::UNCONNECTED_PONG:
 			case Packets::UNCONNECTED_PONG_2:
 			{
-				UnConnectedPing ping(std::move(pck));
+				UnConnectedPing ping(std::move(packet));
 				ping.decode();
 
 				std::stringstream identifierStream; // "MCPE;Minecraft Server!;34;0.12.2;2;20"
@@ -60,7 +60,7 @@ namespace RakLib {
 
 			case Packets::CONNECTION_REQUEST_1:
 			{
-				Request1 request(std::move(pck));
+				Request1 request(std::move(packet));
 				request.decode();
 
 				Reply1 reply(this->sessionManager->useSecurity(), this->sessionManager->getIdentifier(), request.mtuSize);
@@ -75,7 +75,7 @@ namespace RakLib {
 
 			case Packets::CONNECTION_REQUEST_2:
 			{
-				Request2 request(std::move(pck));
+				Request2 request(std::move(packet));
 				request.decode();
 
 				Reply2 reply(this->sessionManager->getIdentifier(), request.port, request.mtuSize, request.security);
@@ -91,12 +91,12 @@ namespace RakLib {
 
 			default:
 			{
-				Session* session = this->sessionManager->getSession(pck->ip, pck->port);
+				Session* session = this->sessionManager->getSession(packet->ip, packet->port);
 				if (session == nullptr) {
 					break;
 				}
 				
-				session->receivePacket(std::move(pck));
+				session->receivePacket(std::move(packet));
 			}
 			break;
 

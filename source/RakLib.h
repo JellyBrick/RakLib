@@ -29,7 +29,7 @@ namespace RakLib {
 		void sendPacket(const Packet& packet);
 
 		void start();
-		void run();
+		void run() const;
 		void stop();
 	};
 }

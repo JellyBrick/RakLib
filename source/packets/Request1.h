@@ -9,8 +9,8 @@ namespace RakLib {
 		uint16 mtuSize;
 
 	public:
-		Request1(std::unique_ptr<Packet> packet);
+		Request1(std::unique_ptr<Packet>&& packet);
 
-		void decode();
+		void decode() override;
 	};
 }

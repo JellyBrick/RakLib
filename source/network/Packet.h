@@ -3,107 +3,47 @@
 #include <string>
 
 #include "../Common.h"
-#include <memory>
+#include "ByteBuffer.h"
 
 namespace RakLib {
-	class Packet {
+	class Packet : public ByteBuffer {
+	public:
+		static const uint32 DEFAULT_BUFFER_SIZE = 1024 * 1024 * 2;
+
 	public:
 		std::string ip;
 		uint16 port;
 
-	protected:
-		uint32 length;
-		uint32 position;
-		uint8* buffer;
-
-	public:
-		/*
-		 * Value: 1470
-		 * Maximum recommended size of a packet by RakNet.
-		 * @Source: http://www.jenkinssoftware.com/raknet/manual/programmingtips.html
-		 * 
-		 * We use 1600 since 1470 don't take in packet header. So we bump it a little bit
-		 */
-		static const uint32 DEFAULT_BUFFER_SIZE = 1024 * 1024;
-
 	public:
 		Packet();
 		Packet(uint32 size);
-		Packet(uint8* buff, uint32 size);
-		Packet(uint8* buff, uint32 size, const std::string& ip, uint16 port);
-		Packet(std::unique_ptr<Packet> other);
-
-		// Movable
-		Packet(Packet&& other) noexcept;
-		Packet& operator=(Packet&& other);
+		Packet(uint8* buffer, uint32 size, const std::string& ip, uint16 port);
 
 		virtual ~Packet();
 
-		//Write Methods
-		void putByte(uint8 v);
-		void putByte(uint8* v, uint32 size);
-
-		void putChar(int8 c);
-
-		void putBool(bool value);
-
-		void putShort(int16 v);
-		void putUShort(uint16 v);
-
-		void putTriad(int24 v);
-		void putLTriad(int24 v);
-
-		void putInt(int32 v);
-		void putUInt(uint32 v);
-
-		void putLong(int64 v);
-		void putULong(uint64 v);
-
-		void putFloat(f32 v);
-		void putDouble(f64 v);
-
-		void putString(const std::string& str);
-
-		// Read Methods
-		uint8 getByte();
-		uint8* getByte(uint32 size);
-
-		int8 getChar();
-
-		bool getBool();
-
-		int16 getShort();
-		uint16 getUShort();
-
-		int24 getTriad();
-		int24 getLTriad();
-
-		int32 getInt();
-		uint32 getUInt();
-
-		int64 getLong();
-		uint64 getULong();
-
-		f32 getFloat();
-		f64 getDouble();
-
-		std::string getString();
-
-		uint8& operator[] (uint32 index) const;
-
-		//Properties
-		uint32 getLength() const;
-		uint8* getBuffer() const;
-
-		void setPosition(uint32);
-		uint32 getPosition() const;
-
-		void swap(Packet& other);
-
-		void resize(uint32 size);
-		void print() const;
+		/*
+		 * Would zero the entire byte buffer
+		 */
 		void clear();
+
+		/*
+		 * Would free byte buffer resource
+		 */
 		void close();
+
+		void swap(Packet& other) noexcept;
+
+		/*
+		 * Would resize byte buffer to desire size
+		 * @param size
+		 */
+		void resize(uint32 size);
+
+		/*
+		 * Would release the byte buffer pointer
+		 * NOTE: If another object doesn't own the byte buffer pointer this would lead to memory leak
+		 */
+		void release();
 
 	private:
 		// Non-Copyable

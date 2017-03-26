@@ -1,9 +1,11 @@
 #include "CustomPacket.h"
 
-namespace RakLib {
-	CustomPacket::CustomPacket(std::unique_ptr<Packet> packet) : Packet(std::move(packet)), packetID(0x84), sequenceNumber(0) {}
+#include <memory>
 
-	CustomPacket::CustomPacket(uint8* data, uint32 size) : Packet(data, size), packetID(0x84), sequenceNumber(0) {}
+namespace RakLib {
+	CustomPacket::CustomPacket(std::unique_ptr<Packet>&& packet) : Packet(packet->getBuffer(), packet->getLength(), "", 0), packetID(0x84), sequenceNumber(0) {
+		packet->release();
+	}
 
 	CustomPacket::CustomPacket(uint32 size) : Packet(size), packetID(0x84), sequenceNumber(0) {}
 
@@ -11,7 +13,6 @@ namespace RakLib {
 
 	CustomPacket::~CustomPacket() {
 		for (const auto& internalPacket : this->packets) {
-			internalPacket->close();
 			delete internalPacket;
 		}
 

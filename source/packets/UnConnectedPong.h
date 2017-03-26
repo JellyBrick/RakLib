@@ -11,6 +11,6 @@ namespace RakLib {
 
 		UnConnectedPong(int64 serverID, int64 pingID, const std::string& title);
 
-		void encode();
+		void encode() override;
 	};
 }

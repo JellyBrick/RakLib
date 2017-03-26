@@ -63,7 +63,6 @@ namespace RakLib {
 		return 3 + this->length + (this->messageIndex != -1 ? 3 : 0) + (this->orderIndex != -1 ? 4 : 0) + (this->hasSplit ? 10 : 0);
 	}
 
-
 	void InternalPacket::close() {
 		delete[] this->buff;
 		this->length = 0;
