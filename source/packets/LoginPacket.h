@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "../network/Packet.h"
+#include "network/Packet.h"
 
 namespace RakLib {
 	class LoginPacket : public Packet {

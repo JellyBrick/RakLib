@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "../Common.h"
+#include "Common.h"
 
 /*
  * This class would iterate over an byte buffer.

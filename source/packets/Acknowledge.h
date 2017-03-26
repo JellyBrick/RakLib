@@ -3,7 +3,7 @@
 #include <memory>
 #include <vector>
 
-#include "../Network/Packet.h"
+#include "network/Packet.h"
 
 namespace RakLib {
 	class Acknowledge : public Packet {
