@@ -35,8 +35,12 @@ namespace RakLib {
 		void putInt(int32 v);
 		void putUInt(uint32 v);
 
+		void putVarUInt(uint32 v);
+
 		void putLong(int64 v);
 		void putULong(uint64 v);
+
+		void putVarULong(uint64 v);
 
 		void putFloat(f32 v);
 		void putDouble(f64 v);
@@ -59,8 +63,12 @@ namespace RakLib {
 		int32 getInt();
 		uint32 getUInt();
 
+		uint32 getVarUInt();
+
 		int64 getLong();
 		uint64 getULong();
+
+		uint64 getVarULong();
 
 		f32 getFloat();
 		f64 getDouble();

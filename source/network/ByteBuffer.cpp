@@ -90,6 +90,15 @@ namespace RakLib {
 		this->position += sizeof(uint32);
 	}
 
+	void ByteBuffer::putVarUInt(uint32 v) {;
+		while (v > 127) {
+			this->buffer[this->position++] = ((uint8_t)(v & 127)) | 128;
+			v >>= 7;
+		}
+
+		this->buffer[this->position++] = ((uint8_t)v) & 127;
+	}
+
 	void ByteBuffer::putLong(int64 v) {
 		assert(this->position + sizeof(int64) <= this->length);
 #if COMMON_LITTLE_ENDIAN
@@ -110,6 +119,15 @@ namespace RakLib {
 		memcpy(this->buffer + this->position, &v, sizeof(uint64));
 #endif
 		this->position += sizeof(uint64);
+	}
+
+	void ByteBuffer::putVarULong(uint64 v) {
+		while (v > 127) {
+			this->buffer[this->position++] = ((uint8_t)(v & 127)) | 128;
+			v >>= 7;
+		}
+
+		this->buffer[this->position++] = ((uint8_t)v) & 127;
 	}
 
 	void ByteBuffer::putFloat(f32 v) {
@@ -230,6 +248,17 @@ namespace RakLib {
 #endif
 	}
 
+	uint32 ByteBuffer::getVarUInt() {
+		uint32 ret = 0;
+		for (size_t i = 0; i < 5; ++i) {
+			ret |= (this->buffer[this->position] & 127) << (7 * i);
+			if (!(this->buffer[this->position++] & 128)) {
+				break;
+			}
+		}
+		return ret;
+	}
+
 	int64 ByteBuffer::getLong() {
 		assert(this->position + sizeof(int64) <= this->length);
 		int64 value = 0;
@@ -252,6 +281,17 @@ namespace RakLib {
 #else
 		return value;
 #endif
+	}
+
+	uint64 ByteBuffer::getVarULong() {
+		uint32 ret = 0;
+		for (uint32 i = 0; i < 10; ++i) {
+			ret |= (this->buffer[this->position] & 127) << (7 * i);
+			if (!(this->buffer[this->position++] & 128)) {
+				break;
+			}
+		}
+		return ret;
 	}
 
 	f32 ByteBuffer::getFloat() {

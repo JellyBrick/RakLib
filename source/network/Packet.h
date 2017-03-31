@@ -17,7 +17,7 @@ namespace RakLib {
 	public:
 		Packet();
 		Packet(uint32 size);
-		Packet(uint8* buffer, uint32 size, const std::string& ip, uint16 port);
+		Packet(uint8* buffer, uint32 size, const std::string& ip = "", uint16 port = 0);
 
 		virtual ~Packet();
 
