@@ -82,7 +82,8 @@ namespace RakLib {
 
 			//TODO: Handle splitted packets
 			for (const auto& internalPacket : customPacket.packets) {
-				this->handleDataPacket(std::make_unique<Packet>(internalPacket->buff, (uint32)internalPacket->length, "", 0));
+				this->handleDataPacket(std::make_unique<Packet>(internalPacket->buff, (uint32)internalPacket->length));
+				internalPacket->buff = nullptr;
 			}
 		} else {
 			this->handleDataPacket(std::move(packet));
@@ -96,8 +97,8 @@ namespace RakLib {
 		internalPacket->reliability = 0x02;
 		internalPacket->messageIndex = this->messageIndex++;
 		internalPacket->length = (uint16)packet->getLength();
-		internalPacket->buff = new uint8[internalPacket->length];
-		memcpy(internalPacket->buff, packet->getBuffer(), internalPacket->length);
+		internalPacket->buff = packet->getBuffer();
+		packet->release();
 
 		if (priority == QueuePriority::IMMEDIATE) {
 			auto customPacket = std::make_unique<CustomPacket>();

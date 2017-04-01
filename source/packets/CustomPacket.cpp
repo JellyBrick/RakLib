@@ -13,6 +13,7 @@ namespace RakLib {
 
 	CustomPacket::~CustomPacket() {
 		for (const auto& internalPacket : this->packets) {
+			internalPacket->close();
 			delete internalPacket;
 		}
 

@@ -64,7 +64,9 @@ namespace RakLib {
 	}
 
 	void InternalPacket::close() {
-		delete[] this->buff;
-		this->length = 0;
+		if (this->buff != nullptr) {
+			delete[] this->buff;
+			this->length = 0;
+		}
 	}
 }
