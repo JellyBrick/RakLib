@@ -155,9 +155,11 @@ namespace RakLib {
 	void ByteBuffer::putString(const std::string& str) {
 		this->putUShort((uint16)str.length());
 
-		assert(this->position + str.length() <= this->length);
-		memcpy(this->buffer + this->position, str.data(), str.length());
-		this->position += str.length();
+		if (!str.empty()) {
+			assert(this->position + str.length() <= this->length);
+			memcpy(this->buffer + this->position, str.data(), str.length());
+			this->position += str.length();
+		}
 	}
 
 	// Read Methods
@@ -320,12 +322,15 @@ namespace RakLib {
 	std::string ByteBuffer::getString() {
 		uint16 size = getUShort();
 
-		assert(this->position + size <= this->length);
-		std::string retval;
-		for (uint16 i = 0; i < size; ++i) {
-			retval += (char)this->buffer[this->position++] & 0xFF;
-		}
+		std::string retval = "";
+		if (size > 0) {
+			assert(this->position + size <= this->length);
+			for (uint16 i = 0; i < size; ++i) {
+				retval += (char)this->buffer[this->position++] & 0xFF;
+			}
 
+			return retval;
+		}
 		return retval;
 	}
 
