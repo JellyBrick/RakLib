@@ -47,6 +47,8 @@ namespace RakLib {
 
 		void putString(const std::string& str);
 
+		void putVarString(const std::string& str);
+
 		uint8 getByte();
 		uint8* getByte(uint32 size);
 
@@ -74,6 +76,8 @@ namespace RakLib {
 		f64 getDouble();
 
 		std::string getString();
+
+		std::string getVarString();
 
 		uint8& operator[] (uint32 index) const;
 

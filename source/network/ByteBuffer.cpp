@@ -162,6 +162,16 @@ namespace RakLib {
 		}
 	}
 
+	void ByteBuffer::putVarString(const std::string& str) {
+		this->putVarUInt((uint32)str.length());
+
+		if (!str.empty()) {
+			assert(this->position + str.length() <= this->length);
+			memcpy(this->buffer + this->position, str.data(), str.length());
+			this->position += str.length();
+		}
+	}
+
 	// Read Methods
 	uint8 ByteBuffer::getByte() {
 		assert(this->position + sizeof(uint8) <= this->length);
@@ -331,6 +341,22 @@ namespace RakLib {
 
 			return retval;
 		}
+		return retval;
+	}
+
+	std::string ByteBuffer::getVarString() {
+		uint32 size = getVarUInt();
+
+		std::string retval = "";
+		if (size > 0) {
+			assert(this->position + size <= this->length);
+			for (uint32 i = 0; i < size; ++i) {
+				retval += (char)this->buffer[this->position++] & 0xFF;
+			}
+
+			return retval;
+		}
+
 		return retval;
 	}
 
