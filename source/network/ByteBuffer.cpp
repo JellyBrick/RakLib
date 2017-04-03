@@ -18,8 +18,11 @@ namespace RakLib {
 
 	void ByteBuffer::putByte(uint8* bytes, uint32 size) {
 		assert(this->position + size <= this->length);
-		memcpy(this->buffer + this->position, bytes, size);
-		this->position += size;
+		
+		if (size > 0) {
+			memcpy(this->buffer + this->position, bytes, size);
+			this->position += size;
+		}
 	}
 
 	void ByteBuffer::putChar(int8 c) {
