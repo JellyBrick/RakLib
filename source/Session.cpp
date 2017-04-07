@@ -3,7 +3,7 @@
 #include "Session.h"
 
 namespace RakLib {
-	Session::Session(const std::string& ip, uint16 port, int64 clientID, int16 mtu) : ip(std::move(ip)), port(port), clientID(clientID), lastSequenceNum(0), sequenceNum(0), messageIndex(0), mtuSize(mtu) {
+	Session::Session(const std::string& ip, uint16 port, uint64 clientID, uint16 mtu) : ip(std::move(ip)), port(port), clientID(clientID), lastSequenceNum(0), sequenceNum(0), messageIndex(0), mtuSize(mtu) {
 		updateQueue = std::make_unique<CustomPacket>();
 		normalQueue = std::make_unique<CustomPacket>();
 	}
@@ -112,18 +112,6 @@ namespace RakLib {
 			recoveryQueue[customPacket->sequenceNumber] = std::move(customPacket);
 		} else if (priority == QueuePriority::UPDATE) {
 			updateQueue->packets.push_back(internalPacket);
-		} else if (priority == QueuePriority::FULLQ) {
-			normalQueue->packets.push_back(internalPacket);
-			if (normalQueue->getLength() > mtuSize) {
-				normalQueue->packetID = 0x80;
-				normalQueue->sequenceNumber = sequenceNum++;
-				normalQueue->encode();
-
-				sendPacket(*normalQueue);
-				recoveryQueue[normalQueue->sequenceNumber] = std::move(normalQueue);
-
-				normalQueue = std::make_unique<CustomPacket>();
-			}
 		}
 	}
 }

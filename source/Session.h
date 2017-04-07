@@ -14,14 +14,13 @@ namespace RakLib {
 		enum class QueuePriority {
 			IMMEDIATE, // The packet is going to be sended immediately
 			UPDATE, // The packet is going to be sended in the next update
-			FULLQ, // The packet will be sended when the queue get full
 		};
 
 	protected:
 		const std::string ip;
 		const uint16 port;
 
-		int64 clientID;
+		uint64 clientID;
 
 	private:
 		uint32 lastSequenceNum;
@@ -39,7 +38,7 @@ namespace RakLib {
 		std::map<uint32, std::unique_ptr<CustomPacket>> recoveryQueue; // Packet sent queue to be used if not received
 
 	public:
-		Session(const std::string& ip, uint16 port, int64 clientID, int16 mtu);
+		Session(const std::string& ip, uint16 port, uint64 clientID, uint16 mtu);
 
 		virtual void update();
 
