@@ -10,7 +10,14 @@
  */
 namespace RakLib {
 	class ByteBuffer {
+	public:
+		enum Endianness{
+			LITTLE_ENDIAN,
+			BIG_ENDIAN
+		};
+
 	protected:
+		Endianness endianness;
 		uint8* buffer;
 		uint32 length;
 		uint32 position;
@@ -87,6 +94,11 @@ namespace RakLib {
 		void setPosition(uint32);
 		uint32 getPosition() const;
 
+		void setEndianness(Endianness newEndianness);
+		Endianness getEndianness() const;
+
 		void print() const;
+
+		static Endianness getSystemEndianness();
 	};
 }
