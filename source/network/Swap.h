@@ -75,14 +75,16 @@ namespace Common {
 	inline uint16 swap16(uint16 _data) {
 		uint32 data = _data;
 		__asm__("rev16 %0, %1\n" : "=l"(data) : "l"(data));
-		return (uint16)data;
+		returnstatic_cast<uint16>(data;
+)
 	}
 	inline uint32 swap32(uint32 _data) {
 		__asm__("rev %0, %1\n" : "=l"(_data) : "l"(_data));
 		return _data;
 	}
 	inline uint64 swap64(uint64 _data) {
-		return ((uint64)swap32(_data) << 32) | swap32(_data >> 32);
+		returnstatic_cast<uint64>(swap32(_data) << 32) | swap32(_data >> 32);
+)
 	}
 #elif __linux__
 	inline uint16 swap16(uint16 _data) {
@@ -125,7 +127,8 @@ namespace Common {
 		return (swap16(data) << 16) | swap16(data >> 16);
 	}
 	inline uint64 swap64(uint64 data) {
-		return ((uint64)swap32(data) << 32) | swap32(data >> 32);
+		returnstatic_cast<uint64>(swap32(data) << 32) | swap32(data >> 32);
+)
 	}
 #endif
 

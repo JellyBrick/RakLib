@@ -1,38 +1,39 @@
 #include "packets/Acknowledge.h"
+
 #include "Session.h"
 
 namespace RakLib {
 	Session::Session(const std::string& ip, uint16 port, int64 clientID, int16 mtu) : ip(std::move(ip)), port(port), clientID(clientID), lastSequenceNum(0), sequenceNum(0), messageIndex(0), mtuSize(mtu) {
-		this->updateQueue = std::make_unique<CustomPacket>();
-		this->normalQueue = std::make_unique<CustomPacket>();
+		updateQueue = std::make_unique<CustomPacket>();
+		normalQueue = std::make_unique<CustomPacket>();
 	}
 
 	//This method should be called often but not too often. 
 	void Session::update() {
-		if (!this->updateQueue->packets.empty()) {
-			this->updateQueue->packetID = 0x80;
-			this->updateQueue->sequenceNumber = this->sequenceNum++;
-			this->updateQueue->encode();
+		if (!updateQueue->packets.empty()) {
+			updateQueue->packetID = 0x80;
+			updateQueue->sequenceNumber = sequenceNum++;
+			updateQueue->encode();
 
-			this->sendPacket(*this->updateQueue);
-			this->recoveryQueue[this->updateQueue->sequenceNumber] = std::move(this->updateQueue);
+			sendPacket(*updateQueue);
+			recoveryQueue[updateQueue->sequenceNumber] = std::move(updateQueue);
 
-			this->updateQueue = std::make_unique<CustomPacket>();
+			updateQueue = std::make_unique<CustomPacket>();
 		}
 
-		if (!this->ACKQueue.empty()) {
-			Acknowledge ack(0xC0, this->ACKQueue);
+		if (!ACKQueue.empty()) {
+			Acknowledge ack(0xC0, ACKQueue);
 			ack.encode();
 
-			this->sendPacket(ack);
-			this->ACKQueue.clear();
+			sendPacket(ack);
+			ACKQueue.clear();
 		}
 
-		if (!this->NACKQueue.empty()) {
-			Acknowledge nack(0xA0, this->NACKQueue);
+		if (!NACKQueue.empty()) {
+			Acknowledge nack(0xA0, NACKQueue);
 			nack.encode();
 
-			this->sendPacket(nack);
+			sendPacket(nack);
 		}
 	}
 
@@ -52,41 +53,41 @@ namespace RakLib {
 			nack.decode();
 
 			for (const auto& sequenceNumber : nack.sequenceNumbers) {
-				if (this->recoveryQueue[sequenceNumber]) {
-					this->sendPacket(*this->recoveryQueue[sequenceNumber]);
+				if (recoveryQueue[sequenceNumber]) {
+					sendPacket(*recoveryQueue[sequenceNumber]);
 				}
 			}
 		} else if (packetID >= 0x80 && packetID <= 0x8F) {  // Custom Packets Range
 			CustomPacket customPacket(std::move(packet));
 			customPacket.decode();
 
-			this->ACKQueue.push_back(customPacket.sequenceNumber);
+			ACKQueue.push_back(customPacket.sequenceNumber);
 
 			//If false then the custom packet is a lost packet
-			if (this->sequenceNum < customPacket.sequenceNumber) {
-				this->lastSequenceNum = this->sequenceNum;
-				this->sequenceNum = customPacket.sequenceNumber;
+			if (sequenceNum < customPacket.sequenceNumber) {
+				lastSequenceNum = sequenceNum;
+				sequenceNum = customPacket.sequenceNumber;
 
-				if (customPacket.sequenceNumber - this->lastSequenceNum > 1) {
-					for (uint32 i = this->lastSequenceNum + 1; i < this->sequenceNum; i++) {
-						this->NACKQueue.push_back(i);
+				if (customPacket.sequenceNumber - lastSequenceNum > 1) {
+					for (uint32 i = lastSequenceNum + 1; i < sequenceNum; i++) {
+						NACKQueue.push_back(i);
 					}
 				}
 			} else {
-				for (uint32 i = 0; i < this->NACKQueue.size(); i++) {
-					if (this->NACKQueue[i] == customPacket.sequenceNumber) {
-						this->NACKQueue.erase(this->NACKQueue.begin() + i);
+				for (uint32 i = 0; i < NACKQueue.size(); i++) {
+					if (NACKQueue[i] == customPacket.sequenceNumber) {
+						NACKQueue.erase(NACKQueue.begin() + i);
 					}
 				}
 			}
 
 			//TODO: Handle splitted packets
 			for (const auto& internalPacket : customPacket.packets) {
-				this->handleDataPacket(std::make_unique<Packet>(internalPacket->buff, (uint32)internalPacket->length));
+				handleDataPacket(std::make_unique<Packet>(internalPacket->buff, static_cast<uint32>(internalPacket->length)));
 				internalPacket->buff = nullptr;
 			}
 		} else {
-			this->handleDataPacket(std::move(packet));
+			handleDataPacket(std::move(packet));
 		}
 	}
 
@@ -95,33 +96,33 @@ namespace RakLib {
 		//TODO: Split packet if length > MTU
 		InternalPacket* internalPacket = new InternalPacket();
 		internalPacket->reliability = 0x02;
-		internalPacket->messageIndex = this->messageIndex++;
-		internalPacket->length = (uint16)packet->getLength();
+		internalPacket->messageIndex = messageIndex++;
+		internalPacket->length = static_cast<uint16>(packet->getLength());
 		internalPacket->buff = packet->getBuffer();
 		packet->release();
 
 		if (priority == QueuePriority::IMMEDIATE) {
 			auto customPacket = std::make_unique<CustomPacket>();
 			customPacket->packetID = 0x80;
-			customPacket->sequenceNumber = this->sequenceNum++;
+			customPacket->sequenceNumber = sequenceNum++;
 			customPacket->packets.push_back(internalPacket); 
 			customPacket->encode();
 
-			this->sendPacket(*customPacket);
-			this->recoveryQueue[customPacket->sequenceNumber] = std::move(customPacket);
+			sendPacket(*customPacket);
+			recoveryQueue[customPacket->sequenceNumber] = std::move(customPacket);
 		} else if (priority == QueuePriority::UPDATE) {
-			this->updateQueue->packets.push_back(internalPacket);
+			updateQueue->packets.push_back(internalPacket);
 		} else if (priority == QueuePriority::FULLQ) {
-			this->normalQueue->packets.push_back(internalPacket);
-			if (this->normalQueue->getLength() > this->mtuSize) {
-				this->normalQueue->packetID = 0x80;
-				this->normalQueue->sequenceNumber = this->sequenceNum++;
-				this->normalQueue->encode();
+			normalQueue->packets.push_back(internalPacket);
+			if (normalQueue->getLength() > mtuSize) {
+				normalQueue->packetID = 0x80;
+				normalQueue->sequenceNumber = sequenceNum++;
+				normalQueue->encode();
 
-				this->sendPacket(*normalQueue);
-				this->recoveryQueue[this->normalQueue->sequenceNumber] = std::move(this->normalQueue);
+				sendPacket(*normalQueue);
+				recoveryQueue[normalQueue->sequenceNumber] = std::move(normalQueue);
 
-				this->normalQueue = std::make_unique<CustomPacket>();
+				normalQueue = std::make_unique<CustomPacket>();
 			}
 		}
 	}

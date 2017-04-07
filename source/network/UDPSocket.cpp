@@ -6,11 +6,11 @@
 namespace RakLib {
 	UDPSocket::UDPSocket(const std::string& ip, uint16 port) {
 #ifdef WIN32 
-		assert(WSAStartup(MAKEWORD(2, 2), &this->WSAData) == 0);
+		assert(WSAStartup(MAKEWORD(2, 2), &WSAData) == 0);
 #endif 
 
-		this->sock = socket(AF_INET, SOCK_DGRAM, 0);
-		if (this->sock == INVALID_SOCKET) {
+		sock = socket(AF_INET, SOCK_DGRAM, 0);
+		if (sock == INVALID_SOCKET) {
 			std::cout << "Could not create the socket!";
 #ifdef WIN32 
 			std::cout << " Error Code: " << WSAGetLastError() << std::endl;
@@ -19,8 +19,8 @@ namespace RakLib {
 			return;
 		}
 
-		this->setOptions();
-		this->bind(ip, port);
+		setOptions();
+		bind(ip, port);
 	}
 
 	bool UDPSocket::bind(const std::string& ip, uint16 port) const {
@@ -36,7 +36,7 @@ namespace RakLib {
 			addr.sin_addr.s_addr = htonl(INADDR_ANY);
 		}
 
-		if (::bind(this->sock, (sockaddr*) &addr, sizeof(sockaddr_in)) == -1) {
+		if (::bind(sock, reinterpret_cast<sockaddr*>(&addr), sizeof(sockaddr_in)) == -1) {
 			std::cout << "Could not bind the socket. Maybe another program is using it\n";
 #ifdef WIN32 
 			std::cout << " Error Code: " << WSAGetLastError() << std::endl;
@@ -52,7 +52,7 @@ namespace RakLib {
 		uint8* buffer = new uint8[Packet::DEFAULT_BUFFER_SIZE];
 
 		int sie = sizeof(sockaddr_in);
-		socklen_t size = recvfrom(this->sock, (char*)buffer, Packet::DEFAULT_BUFFER_SIZE, 0, (sockaddr*)&recv, (socklen_t*)&sie);
+		socklen_t size = recvfrom(sock, reinterpret_cast<char*>(buffer), Packet::DEFAULT_BUFFER_SIZE, 0, reinterpret_cast<sockaddr*>(&recv), reinterpret_cast<socklen_t*>(&sie));
 		if (size == -1) {
 			std::cout << "Could not receive the packet.";
 #ifdef WIN32 
@@ -74,7 +74,7 @@ namespace RakLib {
 		sendaddr.sin_port = packet.port;
 		inet_pton(AF_INET, packet.ip.c_str(), &sendaddr.sin_addr);
 
-		int size = sendto(this->sock, (char*)packet.getBuffer(), packet.getLength(), 0, (sockaddr*)&sendaddr, sizeof(sockaddr_in));
+		int size = sendto(sock, reinterpret_cast<char*>(packet.getBuffer()), packet.getLength(), 0, reinterpret_cast<const sockaddr*>(&sendaddr), sizeof(sockaddr_in));
 		if (size == -1) {
 			std::cout << "Could not send the packet!";
 #ifdef WIN32 
@@ -89,25 +89,25 @@ namespace RakLib {
 
 	void UDPSocket::close() const {
 #ifdef _WIN32
-		closesocket(this->sock);
+		closesocket(sock);
 		WSACleanup();
 #else
-		close(this->sock);
+		close(sock);
 #endif
 	}
 
 	void UDPSocket::setOptions() const {
 		// Set maximun Receive Buffer Size
-		setsockopt(this->sock, SOL_SOCKET, SO_RCVBUF, (char*)&Packet::DEFAULT_BUFFER_SIZE, sizeof(Packet::DEFAULT_BUFFER_SIZE));
+		setsockopt(sock, SOL_SOCKET, SO_RCVBUF, reinterpret_cast<const char*>(&Packet::DEFAULT_BUFFER_SIZE), sizeof(Packet::DEFAULT_BUFFER_SIZE));
 		// Set socket bound to this proccess
 		bool exclusiveUse = true;
-		setsockopt(this->sock, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (char*)&exclusiveUse, sizeof(exclusiveUse));
+		setsockopt(sock, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, reinterpret_cast<const char*>(&exclusiveUse), sizeof(exclusiveUse));
 		// Set socket to not reuse adress if already in use
 		bool reuseAddress = false;
-		setsockopt(this->sock, SOL_SOCKET, SO_REUSEADDR, (char*)reuseAddress, sizeof(reuseAddress));
+		setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char*>(reuseAddress), sizeof(reuseAddress));
 	}
 
 	UDPSocket::~UDPSocket() {
-		this->close();
+		close();
 	}
 }

@@ -10,7 +10,7 @@ namespace RakLib {
 			internalPacket->hasSplit = (flags & 0x10) > 0;
 
 			uint16 s = packet.getUShort();
-			internalPacket->length = (uint16)(s + 7) >> 3;
+			internalPacket->length = static_cast<uint16>((s + 7) >> 3);
 
 		
 			if (internalPacket->reliability == RELIABLE || internalPacket->reliability == RELIABLE_ORDERED || internalPacket->reliability == RELIABLE_SEQUENCED || internalPacket->reliability == RELIABLE_WITH_ACK_RECEIPT || internalPacket->reliability == RELIABLE_ORDERED_WITH_ACK_RECEIPT) {
@@ -37,36 +37,36 @@ namespace RakLib {
 
 	std::unique_ptr<Packet> InternalPacket::toBinary(){
 		auto packet = std::make_unique<Packet>(getLength());
-		packet->putByte((uint8)(this->reliability << 5 | (this->hasSplit ? 0x01 : 0x00)));
-		packet->putUShort((uint16)(this->length << 3));
+		packet->putByte(static_cast<uint8>(reliability << 5 | (hasSplit ? 0x01 : 0x00)));
+		packet->putUShort(static_cast<uint16>(length << 3));
 
-		if (this->reliability == RELIABLE || this->reliability == RELIABLE_ORDERED || this->reliability == RELIABLE_SEQUENCED || this->reliability == RELIABLE_WITH_ACK_RECEIPT || this->reliability == RELIABLE_ORDERED_WITH_ACK_RECEIPT) {
-			packet->putLTriad(this->messageIndex);
+		if (reliability == RELIABLE || reliability == RELIABLE_ORDERED || reliability == RELIABLE_SEQUENCED || reliability == RELIABLE_WITH_ACK_RECEIPT || reliability == RELIABLE_ORDERED_WITH_ACK_RECEIPT) {
+			packet->putLTriad(messageIndex);
 		}
 
-		if (this->reliability == UNRELIABLE_SEQUENCED || this->reliability == RELIABLE_ORDERED || this->reliability == RELIABLE_SEQUENCED || this->reliability == RELIABLE_ORDERED_WITH_ACK_RECEIPT) {
-			packet->putLTriad(this->orderIndex);
-			packet->putByte(this->orderChannel);
+		if (reliability == UNRELIABLE_SEQUENCED || reliability == RELIABLE_ORDERED || reliability == RELIABLE_SEQUENCED || reliability == RELIABLE_ORDERED_WITH_ACK_RECEIPT) {
+			packet->putLTriad(orderIndex);
+			packet->putByte(orderChannel);
 		}
 
-		if (this->hasSplit) {
-			packet->putInt(this->splitCount);
-			packet->putShort(this->splitID);
-			packet->putInt(this->splitIndex);
+		if (hasSplit) {
+			packet->putInt(splitCount);
+			packet->putShort(splitID);
+			packet->putInt(splitIndex);
 		}
 
-		packet->putByte(this->buff, this->length);
+		packet->putByte(buff, length);
 		return std::move(packet);
 	}
 
 	uint32 InternalPacket::getLength() const {
-		return 3 + this->length + (this->messageIndex != -1 ? 3 : 0) + (this->orderIndex != -1 ? 4 : 0) + (this->hasSplit ? 10 : 0);
+		return 3 + length + (messageIndex != -1 ? 3 : 0) + (orderIndex != -1 ? 4 : 0) + (hasSplit ? 10 : 0);
 	}
 
 	void InternalPacket::close() {
-		if (this->buff != nullptr) {
-			delete[] this->buff;
-			this->length = 0;
+		if (buff != nullptr) {
+			delete[] buff;
+			length = 0;
 		}
 	}
 }

@@ -91,7 +91,7 @@ namespace RakLib {
 		uint32 getLength() const;
 		uint8* getBuffer() const;
 
-		void setPosition(uint32);
+		void setPosition(uint32 newPosition);
 		uint32 getPosition() const;
 
 		void setEndianness(Endianness newEndianness);

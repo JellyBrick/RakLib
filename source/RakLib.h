@@ -22,11 +22,11 @@ namespace RakLib {
 	public:
 		RakLib(SessionManager* server, const std::string& serverIP, uint16 serverPort);
 
-		const std::string& getIP() const { return this->ip; };
-		uint16 getPort() const { return this->port; };
-		bool isRunning() const { return this->running; };
+		const std::string& getIP() const { return ip; };
+		uint16 getPort() const { return port; };
+		bool isRunning() const { return running; };
 
-		void sendPacket(const Packet& packet);
+		void sendPacket(const Packet& packet) const;
 
 		void start();
 		void run() const;

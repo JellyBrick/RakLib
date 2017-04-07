@@ -10,29 +10,29 @@ namespace RakLib {
 	}
 
 	void Acknowledge::encode() {
-		this->position = 3;
-		std::sort(this->sequenceNumbers.begin(), this->sequenceNumbers.end());
-		int count = this->sequenceNumbers.size();
+		position = 3;
+		std::sort(sequenceNumbers.begin(), sequenceNumbers.end());
+		int count = sequenceNumbers.size();
 		short records = 0;
 
 		if (count > 0) {
 			int pointer = 1;
-			int start = this->sequenceNumbers[0];
-			int last = this->sequenceNumbers[0];
+			int start = sequenceNumbers[0];
+			int last = sequenceNumbers[0];
 			while (pointer < count) {
-				int current = this->sequenceNumbers[pointer++];
+				int current = sequenceNumbers[pointer++];
 				int diff = current - last;
 				if (diff == 1) {
 					last = current;
 				} else if (diff > 1) {
 					if (start == last) {
-						this->putByte((uint8)0x01);
-						this->putLTriad(start);
+						putBool(true);
+						putLTriad(start);
 						start = last = current;
 					} else {
-						this->putByte((uint8)0x00);
-						this->putLTriad(start);
-						this->putLTriad(last);
+						putBool(false);
+						putLTriad(start);
+						putLTriad(last);
 						start = last = current;
 					}
 					++records;
@@ -40,40 +40,40 @@ namespace RakLib {
 			}
 
 			if (start == last) {
-				this->putByte((uint8)0x01);
-				this->putLTriad(start);
+				putBool(true);
+				putLTriad(start);
 			} else {
-				this->putByte((uint8)0x00);
-				this->putLTriad(start);
-				this->putLTriad(last);
+				putBool(false);
+				putLTriad(start);
+				putLTriad(last);
 			}
 			++records;
 		}
 
-		uint32 size = this->position;
-		this->position = 0;
-		this->putByte(this->pid);
-		this->putShort(records);
-		this->resize(size);
+		uint32 size = position;
+		position = 0;
+		putByte(pid);
+		putShort(records);
+		resize(size);
 	}
 
 	void Acknowledge::decode() {
-		this->pid = this->getByte();
-		int16 count = this->getShort();
+		pid = getByte();
+		int16 count = getShort();
 
 		for (int16 i = 0; i < count; ++i) {
-			if (!this->getBool()) {
-				int24 start = this->getLTriad();
-				int24 end = this->getLTriad();
+			if (!getBool()) {
+				int24 start = getLTriad();
+				int24 end = getLTriad();
 				if (end - start > 4096) {
 					end = start + 4096;
 				}
 
 				for (int24 c = start; c <= end; ++c) {
-					this->sequenceNumbers.push_back(c);
+					sequenceNumbers.push_back(c);
 				}
 			} else {
-				this->sequenceNumbers.push_back(this->getLTriad());
+				sequenceNumbers.push_back(getLTriad());
 			}
 		}
 	}

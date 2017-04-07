@@ -16,3 +16,7 @@ typedef int32 int24;
 
 #define min(min, max) (min > max ? max : min)
 #define max(min, max) (min > max ? min : max)
+
+#ifdef _MSC_VER
+#pragma warning ( disable: 4514 )
+#endif

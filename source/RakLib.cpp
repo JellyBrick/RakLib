@@ -13,24 +13,19 @@
 #include "Session.h"
 
 namespace RakLib {
-	RakLib::RakLib(SessionManager* server, const std::string& serverIP, uint16 serverPort) {
-		this->sessionManager = server;
-		this->ip = serverIP;
-		this->port = serverPort;
-		this->running = false;
-	}
+	RakLib::RakLib(SessionManager* server, const std::string& serverIP, uint16 serverPort) : sessionManager(server), ip(serverIP), port(serverPort), running(false) {}
 
 	void RakLib::start() {
-		assert(!this->running);
+		assert(!running);
 
-		this->running = true;
-		this->socket = std::make_unique<UDPSocket>(this->ip, this->port);
-		this->mainThread = std::thread(&RakLib::run, this);
+		running = true;
+		socket = std::make_unique<UDPSocket>(ip, port);
+		mainThread = std::thread(&RakLib::run, this);
 	}
 
 	void RakLib::run() const {
-		while (this->running) {
-			std::unique_ptr<Packet> packet = this->socket->receive();
+		while (running) {
+			std::unique_ptr<Packet> packet = socket->receive();
 			uint8 pid = packet->getBuffer()[0];
 
 			switch (pid) {
@@ -48,13 +43,13 @@ namespace RakLib {
 				identifierStream << sessionManager->getActivePlayers() << ";";
 				identifierStream << sessionManager->getMaxPlayer();
 
-				UnConnectedPong pong(this->sessionManager->getIdentifier(), ping.pingID, identifierStream.str());
+				UnConnectedPong pong(sessionManager->getIdentifier(), ping.pingID, identifierStream.str());
 				pong.encode();
 
 				pong.ip = ping.ip;
 				pong.port = ping.port;
 
-				this->socket->send(pong);
+				socket->send(pong);
 			}
 			break;
 
@@ -63,13 +58,13 @@ namespace RakLib {
 				Request1 request(std::move(packet));
 				request.decode();
 
-				Reply1 reply(this->sessionManager->useSecurity(), this->sessionManager->getIdentifier(), request.mtuSize);
+				Reply1 reply(sessionManager->useSecurity(), sessionManager->getIdentifier(), request.mtuSize);
 				reply.encode();
 
 				reply.ip = request.ip;
 				reply.port = request.port;
 
-				this->socket->send(reply);
+				socket->send(reply);
 			}
 			break;
 
@@ -78,20 +73,20 @@ namespace RakLib {
 				Request2 request(std::move(packet));
 				request.decode();
 
-				Reply2 reply(this->sessionManager->getIdentifier(), request.port, request.mtuSize, request.security);
+				Reply2 reply(sessionManager->getIdentifier(), request.port, request.mtuSize, request.security);
 				reply.encode();
 
 				reply.ip = request.ip;
 				reply.port = request.port;
 
-				this->socket->send(reply);
-				this->sessionManager->addSession(request.ip, request.port, request.clientID, reply.mtuSize);
+				socket->send(reply);
+				sessionManager->addSession(request.ip, request.port, request.clientID, reply.mtuSize);
 			}
 			break;
 
 			default:
 			{
-				Session* session = this->sessionManager->getSession(packet->ip, packet->port);
+				Session* session = sessionManager->getSession(packet->ip, packet->port);
 				if (session == nullptr) {
 					break;
 				}
@@ -104,14 +99,14 @@ namespace RakLib {
 		}
 	}
 
-	void RakLib::sendPacket(const Packet& packet) {
-		this->socket->send(packet);
+	void RakLib::sendPacket(const Packet& packet) const {
+		socket->send(packet);
 	}
 
 	void RakLib::stop() {
-		assert(!this->running);
+		assert(!running);
 
-		this->running = false;
-		this->mainThread.join();
+		running = false;
+		mainThread.join();
 	}
 }

@@ -5,11 +5,11 @@ namespace RakLib {
 		: LoginPacket(std::move(packet)), security(false), cookie(0), rport(0), mtuSize(0), clientID(0) {}
 
 	void Request2::decode() {
-		this->position += 17;
-		this->security = this->getBool();
-		this->cookie = this->getInt();
-		this->rport = (uint16)this->getUShort();
-		this->mtuSize = (uint16)this->getShort();
-		this->clientID = this->getLong();
+		position += 17; // Skip Packet ID and RakNet Magic
+		security = getBool();
+		cookie = getInt();
+		rport = static_cast<uint16>(getUShort());
+		mtuSize = static_cast<uint16>(getShort());
+		clientID = getLong();
 	}
 }

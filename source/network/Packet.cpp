@@ -11,53 +11,53 @@ namespace RakLib {
 	Packet::Packet() : ByteBuffer(), port(0) {}
 
 	Packet::Packet(uint32 size) : port(0) {
-		this->buffer = new uint8[size];
-		this->position = 0;
-		this->length = size;
+		buffer = new uint8[size];
+		position = 0;
+		length = size;
 	}
 
 	Packet::Packet(uint8* buffer, uint32 size, const std::string& ip, uint16 port) : ByteBuffer(buffer, size), ip(std::move(ip)), port(port) {}
 
 	void Packet::clear() {
-		assert(this->buffer != nullptr && this->length > 0);
-		memset(this->buffer, 0x00, this->length);
-		this->position = 0;
+		assert(buffer != nullptr && length > 0);
+		memset(buffer, 0x00, length);
+		position = 0;
 	}
 
 	void Packet::close() {
 		if (buffer != nullptr) {
-			delete[] this->buffer;
-			this->buffer = nullptr;
-			this->length = 0;
-			this->position = 0;
+			delete[] buffer;
+			buffer = nullptr;
+			length = 0;
+			position = 0;
 		}
 	}
 
 	void Packet::swap(Packet& other) noexcept {
-		std::swap(this->buffer, other.buffer);
-		std::swap(this->position, other.position);
-		std::swap(this->length, other.length);
+		std::swap(buffer, other.buffer);
+		std::swap(position, other.position);
+		std::swap(length, other.length);
 	}
 
 	void Packet::resize(uint32 size) {
 		uint32 newSize = min(size, length);
 
 		uint8* newBuffer = new uint8[size];
-		memcpy(newBuffer, this->buffer, newSize);
-		delete[] this->buffer;
+		memcpy(newBuffer, buffer, newSize);
+		delete[] buffer;
 
-		this->buffer = newBuffer;
-		this->position = min(this->position, newSize);
-		this->length = size;
+		buffer = newBuffer;
+		position = min(position, newSize);
+		length = size;
 	}
 
 	void Packet::release() {
-		this->buffer = nullptr;
-		this->position = 0;
-		this->length = 0;
+		buffer = nullptr;
+		position = 0;
+		length = 0;
 	}
 
 	Packet::~Packet() {
-		this->close();
+		close();
 	}
 }
