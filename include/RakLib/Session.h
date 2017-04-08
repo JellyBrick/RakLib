@@ -4,9 +4,9 @@
 #include <memory>
 #include <vector>
 
-#include "packets/CustomPacket.h"
-#include "packets/DataPacket.h"
-#include "network/Packet.h"
+#include "RakLib/network/Packet.h"
+#include "RakLib/protocol/CustomPacket.h"
+#include "RakLib/protocol/DataPacket.h"
 
 namespace RakLib {
 	class Session {

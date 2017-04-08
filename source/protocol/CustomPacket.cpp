@@ -1,4 +1,4 @@
-#include "CustomPacket.h"
+#include "RakLib/protocol/CustomPacket.h"
 
 #include <memory>
 

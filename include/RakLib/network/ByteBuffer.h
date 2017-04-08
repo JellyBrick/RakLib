@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "Common.h"
+#include "RakLib/Common.h"
 
 /*
  * This class would iterate over an byte buffer.

@@ -1,5 +1,4 @@
-
-#include "LoginPacket.h"
+#include "RakLib/protocol/LoginPacket.h"
 
 namespace RakLib {
 	LoginPacket::LoginPacket(uint32 size) : Packet(size) {}

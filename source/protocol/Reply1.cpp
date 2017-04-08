@@ -1,6 +1,6 @@
-#include "Reply1.h"
+#include "RakLib/protocol/Reply1.h"
 
-#include "Info.h"
+#include "RakLib/protocol/Info.h"
 
 namespace RakLib {
 	Reply1::Reply1(bool security, int64 serverID, uint16 mtuSize) : LoginPacket(28), 

@@ -1,8 +1,8 @@
-#include "ByteBuffer.h"
+#include "RakLib/network/ByteBuffer.h"
 
 #include <cassert>
 
-#include "Swap.h"
+#include "RakLib/network/Swap.h"
 
 namespace RakLib {
 	ByteBuffer::ByteBuffer() : endianness(Endianness::BIG), buffer(nullptr), length(0), position(0) {}

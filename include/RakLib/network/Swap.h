@@ -28,7 +28,7 @@
 
 #include <cstring>
 
-#include "Common.h"
+#include "RakLib/Common.h"
 
 // GCC 4.6+
 #if __GNUC__ >= 5 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)

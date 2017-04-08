@@ -1,6 +1,6 @@
-#include "UnConnectedPong.h"
+#include "RakLib/protocol/UnConnectedPong.h"
 
-#include "Info.h"
+#include "RakLib/protocol/Info.h"
 
 namespace RakLib {
 	UnConnectedPong::UnConnectedPong(int64 serverID, int64 pingID, const std::string& title) 

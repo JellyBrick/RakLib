@@ -1,16 +1,16 @@
-#include "RakLib.h"
+#include "RakLib/RakLib.h"
 
 #include <cassert>
 #include <sstream>
 
-#include "packets/Info.h"
-#include "packets/Reply1.h"
-#include "packets/Reply2.h"
-#include "packets/Request1.h"
-#include "packets/Request2.h"
-#include "packets/UnConnectedPing.h"
-#include "packets/UnConnectedPong.h"
-#include "Session.h"
+#include "RakLib/protocol/Info.h"
+#include "RakLib/protocol/Reply1.h"
+#include "RakLib/protocol/Reply2.h"
+#include "RakLib/protocol/Request1.h"
+#include "RakLib/protocol/Request2.h"
+#include "RakLib/protocol/UnConnectedPing.h"
+#include "RakLib/protocol/UnConnectedPong.h"
+#include "RakLib/Session.h"
 
 namespace RakLib {
 	RakLib::RakLib(SessionManager* server, const std::string& serverIP, uint16 serverPort) : sessionManager(server), ip(serverIP), port(serverPort), running(false) {}

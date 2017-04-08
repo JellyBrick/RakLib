@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "Common.h"
+#include "RakLib/Common.h"
 #include "ByteBuffer.h"
 
 namespace RakLib {

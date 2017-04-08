@@ -1,6 +1,6 @@
-#include "packets/Acknowledge.h"
+#include "RakLib/protocol/Acknowledge.h"
 
-#include "Session.h"
+#include "RakLib/Session.h"
 
 namespace RakLib {
 	Session::Session(const std::string& ip, uint16 port, uint64 clientID, uint16 mtu) : ip(std::move(ip)), port(port), clientID(clientID), lastSequenceNum(0), sequenceNum(0), messageIndex(0), mtuSize(mtu) {

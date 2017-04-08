@@ -1,6 +1,6 @@
-#include "Reply2.h"
+#include "RakLib/protocol/Reply2.h"
 
-#include "Info.h"
+#include "RakLib/protocol/Info.h"
 
 namespace RakLib {
 	Reply2::Reply2(int64 serverID, uint16 port, int16 mtuSize, bool security) 

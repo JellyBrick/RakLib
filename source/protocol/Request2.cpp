@@ -1,4 +1,4 @@
-#include "Request2.h"
+#include "RakLib/protocol/Request2.h"
 
 namespace RakLib {
 	Request2::Request2(std::unique_ptr<Packet>&& packet) 

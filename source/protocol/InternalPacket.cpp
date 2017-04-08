@@ -1,4 +1,4 @@
-#include "InternalPacket.h"
+#include "RakLib/protocol/InternalPacket.h"
 
 namespace RakLib {
 	std::vector<InternalPacket*> InternalPacket::fromBinary(Packet& packet) {
