@@ -2,7 +2,14 @@
 
 #include <memory>
 
-#ifdef __unix__
+#ifdef WIN32
+	#include <winsock2.h>
+	#include <Ws2tcpip.h>
+	#include <windows.h>
+	#ifdef _MSC_VER
+		#pragma comment(lib, "Ws2_32.lib")
+	#endif
+#else
 	#include <errno.h>
 	#include <sys/types.h>
 	#include <sys/socket.h>
@@ -13,13 +20,6 @@
 	#include <unistd.h>
 	#define INVALID_SOCKET -1
 	#define SOCKET int
-#else
-	#include <winsock2.h>
-	#include <Ws2tcpip.h>
-	#include <windows.h>
-	#ifdef _MSC_VER
-		#pragma comment(lib, "Ws2_32.lib")
-	#endif
 #endif
 
 #include "Packet.h"

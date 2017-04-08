@@ -11,9 +11,9 @@
 namespace RakLib {
 	class ByteBuffer {
 	public:
-		enum Endianness{
-			LITTLE_ENDIAN,
-			BIG_ENDIAN
+		enum Endianness {
+			LITTLE,
+			BIG
 		};
 
 	protected:

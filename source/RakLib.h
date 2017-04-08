@@ -4,7 +4,7 @@
 #include <thread>
 #include <string>
 
-#include "Network/UDPSocket.h"
+#include "network/UDPSocket.h"
 #include "SessionManager.h"
 
 namespace RakLib {

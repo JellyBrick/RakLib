@@ -5,9 +5,9 @@
 #include "Swap.h"
 
 namespace RakLib {
-	ByteBuffer::ByteBuffer() : endianness(BIG_ENDIAN), buffer(nullptr), length(0), position(0) {}
+	ByteBuffer::ByteBuffer() : endianness(Endianness::BIG), buffer(nullptr), length(0), position(0) {}
 
-	ByteBuffer::ByteBuffer(uint8* buffer, uint32 size) : endianness(BIG_ENDIAN), buffer(buffer), length(size), position(0) {
+	ByteBuffer::ByteBuffer(uint8* buffer, uint32 size) : endianness(Endianness::BIG), buffer(buffer), length(size), position(0) {
 		assert(buffer != nullptr && size != 0);
 	}
 
@@ -371,9 +371,9 @@ namespace RakLib {
 
 	ByteBuffer::Endianness ByteBuffer::getSystemEndianness() {
 #if COMMON_LITTLE_ENDIAN
-		return Endianness::LITTLE_ENDIAN;
+		return Endianness::LITTLE;
 #else
-		return Endianness::BIG_ENDIAN;
+		return Endianness::BIG;
 #endif
 	}
 }

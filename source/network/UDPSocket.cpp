@@ -92,7 +92,7 @@ namespace RakLib {
 		closesocket(sock);
 		WSACleanup();
 #else
-		close(sock);
+		::close(sock);
 #endif
 	}
 
@@ -101,7 +101,9 @@ namespace RakLib {
 		setsockopt(sock, SOL_SOCKET, SO_RCVBUF, reinterpret_cast<const char*>(&Packet::DEFAULT_BUFFER_SIZE), sizeof(Packet::DEFAULT_BUFFER_SIZE));
 		// Set socket bound to this proccess
 		bool exclusiveUse = true;
-		setsockopt(sock, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, reinterpret_cast<const char*>(&exclusiveUse), sizeof(exclusiveUse));
+		#ifdef WIN32
+			setsockopt(sock, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, reinterpret_cast<const char*>(&exclusiveUse), sizeof(exclusiveUse));
+		#endif
 		// Set socket to not reuse adress if already in use
 		bool reuseAddress = false;
 		setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char*>(reuseAddress), sizeof(reuseAddress));
