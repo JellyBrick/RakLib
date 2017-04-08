@@ -361,7 +361,7 @@ namespace RakLib {
 		}
 	}
 
-	void ByteBuffer::setEndianness(enum Endianness newEndianness) {
+	void ByteBuffer::setEndianness(Endianness newEndianness) {
 		endianness = newEndianness;
 	}
 
