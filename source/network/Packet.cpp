@@ -8,6 +8,9 @@
  */
 
 namespace RakLib {
+
+	const uint32 Packet::DEFAULT_BUFFER_SIZE = 1024 * 1024 * 2;
+	
 	Packet::Packet() : ByteBuffer(), port(0) {}
 
 	Packet::Packet(uint32 size) : port(0) {

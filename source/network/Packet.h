@@ -8,7 +8,7 @@
 namespace RakLib {
 	class Packet : public ByteBuffer {
 	public:
-		static const uint32 DEFAULT_BUFFER_SIZE = 1024 * 1024 * 2;
+		static const uint32 DEFAULT_BUFFER_SIZE;
 
 	public:
 		std::string ip;
