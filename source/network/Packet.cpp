@@ -1,6 +1,7 @@
 #include "RakLib/network/Packet.h"
 
 #include <cassert>
+#include <cstring>
 
 /*
  * This class would wrap the byte buffer received from the client and his info (Adress, Port)
@@ -43,14 +44,14 @@ namespace RakLib {
 	}
 
 	void Packet::resize(uint32 size) {
-		uint32 newSize = min(size, length);
+		uint32 newSize = std::min(size, length);
 
 		uint8* newBuffer = new uint8[size];
 		memcpy(newBuffer, buffer, newSize);
 		delete[] buffer;
 
 		buffer = newBuffer;
-		position = min(position, newSize);
+		position = std::min(position, newSize);
 		length = size;
 	}
 

@@ -13,6 +13,3 @@ typedef float f32;
 typedef double f64;
 
 typedef int32 int24;
-
-#define min(min, max) (min > max ? max : min)
-#define max(min, max) (min > max ? min : max)
