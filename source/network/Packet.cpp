@@ -1,5 +1,6 @@
 #include "RakLib/network/Packet.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cstring>
 
